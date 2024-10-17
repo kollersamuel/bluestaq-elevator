@@ -16,6 +16,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r ./requirements.txt
         pip install -r ./requirements.dev.txt
-    - name: Linting
+    - name: Testing
       run: |
         python -m coverage run -m pytest -vv . && python -m coverage report -m
