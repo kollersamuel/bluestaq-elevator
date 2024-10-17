@@ -2,7 +2,7 @@
 app.py
 Samuel Koller
 Created: 15 October 2024
-Updated: 16 October 2024
+Updated: 17 October 2024
 
 Main file for the Bluestaq Elevator Application. Houses the Flask server and relevant endpoints.
 
@@ -10,7 +10,7 @@ Functions:
     health_check(): A route to check if the service is running.
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 import os
 
