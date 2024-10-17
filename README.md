@@ -40,6 +40,8 @@ When contributing please continue to use the consistency standards set in place.
 
 The CI pipeline will check the formatting using these tools, in Python 3.11.
 
+Please update the CHANGELOG with any notable changes.
+
 # Author
 
 Samuel Koller: E-mail: `samuel.a.koller@gmail.com`, GitHub: `https://github.com/kollersamuel`
