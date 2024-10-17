@@ -6,3 +6,9 @@
 
 ## 0.1.1 (16 October 2024)
 - Set up of the CI pipeline to check formatting and linting of the code (black, isort, pylint).
+
+## 0.1.2 (17 October 2024)
+- Set up of the testing file structure.
+- Set up of the CI pipeline to check testing success and coverage (pytest, coverage).
+- Modified linting and precommit scripts.
+- Skeleton implementation of Elevator.

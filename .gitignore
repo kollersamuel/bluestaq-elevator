@@ -1,6 +1,7 @@
 # Custom Files
 brainstorm.md
-pylint_results.txt
+linting_report.txt
+testing_report.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

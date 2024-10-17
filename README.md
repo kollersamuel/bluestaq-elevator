@@ -34,11 +34,12 @@ Health Check for the Application
 
 When contributing please continue to use the consistency standards set in place. To do this, ensure you have installed the development requirements. If so, run these commands (or run `. precommit.sh`):
 
-1. `python -m black .`
-2. `python -m isort .`
-3. `(echo -e "Pylint Report Generated: $(date -u +%Y-%m-%dT%H:%M:%S%Z):\n" && python -m pylint . --output-format=text) > pylint_results.txt`, this will generate a report with the current pylint rating of the code, and should be maintained at full marks.
+1. `python -m black . -- quiet`, this will auto-format your code to match the black standards.
+2. `python -m isort . --quiet`, this will auto-sort imports to match the isort standards.
+3. `(echo -e "Pylint Report Generated $(date -u +%Y-%m-%dT%H:%M:%S%Z):\n" && python -m pylint . --output-format=text) > linting_report.txt`, this will generate a report with the current pylint rating of the code, and should be maintained at full marks.
+4. `(echo -e "Coverage Report Generated $(date -u +%Y-%m-%dT%H:%M:%S%Z):\n" && python -m coverage run -m pytest -vv . && python -m coverage report -m) > testing_report.txt`, this will generate a report with the current coverage rating of the code, and should be maintained at close to full marks (>95%).
 
-The CI pipeline will check the formatting using these tools, in Python 3.11.
+The CI pipeline will check the linting and testing using these tools, in Python 3.11.
 
 Please update the CHANGELOG with any notable changes.
 
