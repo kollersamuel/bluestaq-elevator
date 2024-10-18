@@ -13,13 +13,14 @@ from enum import Enum
 
 class Status(Enum):
     """Possible Statuses of the Elevator."""
+
     IDLE = "Idle"
     UP = "Up"
     DOWN = "Down"
 
 
-# pylint: disable-next=R0903
 # TODO: Remove this pylint once a second public method is added.
+# pylint: disable-next=R0903
 class Elevator:
     """
     The Elevator object: transports persons to their requested destination.
@@ -56,7 +57,7 @@ class Elevator:
             return
         if requested_floor <= 0 or requested_floor > self.top_floor:
             return
-        elif self.stop_queue:
+        if self.stop_queue:
             if requested_floor in self.stop_queue:
                 return
             self.stop_queue.append(requested_floor)
