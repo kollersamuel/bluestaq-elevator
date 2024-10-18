@@ -8,3 +8,4 @@ Contains all source code used for simulating a running elevator.
 """
 
 from .classes import *
+from .utils import *

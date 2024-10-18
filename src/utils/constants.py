@@ -1,0 +1,1 @@
+PLAYBACK_SPEED = 5 # Default: 1

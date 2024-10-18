@@ -12,6 +12,8 @@ Functions:
 
 __version__ = "0.3.0"
 
+import multiprocessing
+from time import sleep
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 
@@ -39,5 +41,17 @@ def add_stop(floor):
     elevator.add_stop(floor)
     return jsonify({}), 200
 
+def start_flask() -> None:
+    app.run(debug=False, port=3148, )
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000, threaded = True)
+    flask_process = multiprocessing.Process(target=start_flask, daemon=False)    
+    flask_process.start()
+
+    sleep(5)
+    elevator_process = multiprocessing.Process(target=elevator.update, daemon=True)
+    elevator_process.start()
+
+    elevator_process.join()
+    flask_process.terminate()
+    flask_process.join()
