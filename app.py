@@ -10,21 +10,16 @@ Functions:
     health_check(): A route to check if the service is running.
 """
 
-__version__ = "0.2.0"
-
-import os
+__version__ = "0.3.0"
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 
+from src.classes.elevator import Elevator
+
 load_dotenv()
-
 app = Flask(__name__)
-
-
-debug: str = os.getenv("DEBUG", "False")
-port: str = os.getenv("PORT", "5000")
-
+elevator = Elevator()
 
 @app.route("/", methods=["GET"])
 def health_check():
@@ -39,6 +34,10 @@ def health_check():
     """
     return jsonify({"message": "Elevator is Online"}), 200
 
+@app.route("/floor/<int:floor>", methods=["GET"])
+def add_stop(floor):
+    elevator.add_stop(floor)
+    return jsonify({}), 200
 
 if __name__ == "__main__":
-    app.run(debug=debug, port=port)
+    app.run(debug=True, port=5000, threaded = True)

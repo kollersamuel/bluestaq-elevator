@@ -9,6 +9,8 @@ Class for the Elevator object, which tracks the state an contents of the elevato
 
 import bisect
 from enum import Enum
+import threading
+from time import sleep
 
 
 class Status(Enum):
@@ -42,6 +44,24 @@ class Elevator:
         self.stop_queue: list[int] = []
         self.top_floor: int = 20  # Temporary assumption.
 
+        self.lock = threading.Lock()
+        threading.Thread(target=self.move, daemon=True).start()
+
+    def move(self) -> None:
+        # while self.current_floor != self.stop_queue[0]
+        while True:
+            with self.lock:                
+                if self.stop_queue[0] > self.current_floor:
+                    self.status = Status.UP
+                    sleep(5)
+                    self.current_floor += 1
+                else:
+                    self.status = Status.DOWN
+                    sleep(5)
+                    self.current_floor -= 1
+                self.status = Status.IDLE
+                # app.logger.debug(f"Floor: {self.current_floor}")
+
     def add_stop(self, requested_floor: int) -> None:
         """
         Adds the requested floor the the priority queue in the correct position.
@@ -51,27 +71,30 @@ class Elevator:
         Parameters:
             requested_floor (int): The floor to add to the priority queue.
         """
-        # Catch a request to the current floor, and open door.
-        # TODO: Have this open doors.
-        if requested_floor == self.current_floor:
-            return
-        if requested_floor <= 0 or requested_floor > self.top_floor:
-            return
-        if self.stop_queue:
-            if requested_floor in self.stop_queue:
+        with self.lock:
+            # Catch a request to the current floor, and open door.
+            # TODO: Have this open doors.
+            if requested_floor == self.current_floor:
                 return
-            self.stop_queue.append(requested_floor)
-        else:
-            self.stop_queue = [requested_floor]
+            if requested_floor <= 0 or requested_floor > self.top_floor:
+                return
+            if self.stop_queue:
+                if requested_floor in self.stop_queue:
+                    return
+                self.stop_queue.append(requested_floor)
+            else:
+                self.stop_queue = [requested_floor]
 
-        self.stop_queue.sort()
-        split_index = bisect.bisect_left(self.stop_queue, self.current_floor)
+            self.stop_queue.sort()
+            split_index: int = bisect.bisect_left(self.stop_queue, self.current_floor)
 
-        if self.direction_up:
-            on_way = self.stop_queue[split_index:]
-            on_return = list(reversed(self.stop_queue[:split_index]))
-        else:
-            on_way = list(reversed(self.stop_queue[:split_index]))
-            on_return = self.stop_queue[split_index:]
+            if self.direction_up:
+                on_way: list[int] = self.stop_queue[split_index:]
+                on_return: list[int] = list(reversed(self.stop_queue[:split_index]))
+            else:
+                on_way : list[int]= list(reversed(self.stop_queue[:split_index]))
+                on_return: list[int] = self.stop_queue[split_index:]
 
         self.stop_queue = on_way + on_return
+
+        # app.logger.debug(self.stop_queue)
