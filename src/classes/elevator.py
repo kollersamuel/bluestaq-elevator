@@ -18,6 +18,8 @@ class Status(Enum):
     DOWN = "Down"
 
 
+# pylint: disable-next=R0903
+# TODO: Remove this pylint once a second public method is added.
 class Elevator:
     """
     The Elevator object: transports persons to their requested destination.
