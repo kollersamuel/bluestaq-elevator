@@ -19,6 +19,8 @@ from flask import Flask, jsonify
 
 from src.classes.elevator import Elevator
 
+stop_queue = multiprocessing.Manager().list([2])
+
 load_dotenv()
 app = Flask(__name__)
 elevator = Elevator()
