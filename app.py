@@ -10,7 +10,7 @@ Functions:
     health_check(): A route to check if the service is running.
 """
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"
 
 import os
 

@@ -12,3 +12,6 @@
 - Set up of the CI pipeline to check testing success and coverage (pytest, coverage).
 - Modified linting and precommit scripts.
 - Skeleton implementation of Elevator.
+
+## 0.2.0 (17 October 2024)
+- Elevator can queue requests in the proper order.
