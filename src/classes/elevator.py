@@ -72,8 +72,11 @@ class Elevator:
 
     def update(self) -> None:
         """Determines what the next action for the elevator is."""
-        with open("./requests.json", "r", encoding="utf-8") as requests_json:
-            requests = json.load(requests_json)
+        try:
+            with open("./requests.json", "r", encoding="utf-8") as requests_json:
+                requests = json.load(requests_json)
+        except:
+            requests = []
         self.update_stops(
             [
                 request["button"]

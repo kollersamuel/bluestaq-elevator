@@ -7,8 +7,11 @@ class Button:
         self.button = kwargs.get("button")
     
     def press(self):
-        with open("./requests.json", "r", encoding="utf-8") as requests_json:
-            requests = json.load(requests_json)
+        try:
+            with open("./requests.json", "r", encoding="utf-8") as requests_json:
+                requests = json.load(requests_json)
+        except:
+            requests = []
         if isinstance(requests, list):
             requests.append({"source": self.source, "button": self.button})
         else:
