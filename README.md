@@ -4,11 +4,13 @@
 
 Elevator program written as part of the interview process for Bluestaq, Colorado Springs. The goal of this application is to have a continuously running elevator system with randomly generated events. A user may use endpoints to manually add events.
 
-A major assumption of this program is that this is a standalone application for a single machine and user. If future intentions were to have multiple users access the elevator or to integrate this into a system as a microservice, a key required change would be to not use `requests.json` as a "database"/"queue"; Rather one would likely substitute this with a service such as RabbitMQ. The reason for this is the danger of reading and writing to the file from multiple processes, which can lead to file (in this case the database) corruption and would ultimately cause the application to have a fatal exception. In the current set up, it is difficult to overload the system when manually accessing endpoints.
+A major assumption of this program is that this is a finite state machine and the application is built for a single machine and user.
 
 # Setup
 
 This application was build using Python 3.11, for best results use this version.
+
+Ensure you have postman or a terminal to send endpoints from.
 
 First, run `pip install -r ./requirements.txt` (for production) and `pip install -r ./requirements.dev.txt` (for development).
 
@@ -30,17 +32,51 @@ Health Check for the Application
   - Description: Application is running.
   - Message: "Elevator is Online"
 
-## POST /request
+## GET /steps/<steps>
 
 ### Description
 
-Route to submit a request to the elevator system.
+Progress the elevator by given number of steps.
+
+### Parameters:
+- Steps: An integer representing the number of steps to take.
+
+### Responses
+
+- **200 OK**
+  - Description: Steps taken.
+  - Message: "Moved 0 steps."
+
+
+## POST /press_button
+
+### Description
+
+Route to manually press a button(s).
+
+### Request Body
+JSON list of buttons to press, each button must follow the format of {"source": int | str, "button": int | str}.
 
 ### Responses
 
 - **200 OK**
   - Description: Request successfully submitted.
-  - Message: {}
+  - Message: "Pushed requested button(s)"
+
+## POST /create_person
+
+### Description
+
+Route to create a person(s).
+
+### Request Body
+JSON list of persons to add, each person must follow the format of {"origin": int , "destination": int}, with optional keys of {"weight": float, "cargo": float}.
+
+### Responses
+
+- **200 OK**
+  - Description: Request successfully submitted.
+  - Message: "Created Person 0 with the following attributes: Origin: 1, Destination: 2, Weight: 150, Cargo: 25."
 
 # Contributing
 

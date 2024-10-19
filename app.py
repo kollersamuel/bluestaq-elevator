@@ -10,22 +10,24 @@ Functions:
     health_check(): A route to check if the service is running.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
-import json
-import multiprocessing
-import time
-from time import sleep
+
+import logging
 
 from dotenv import load_dotenv
 from flask import Flask, Response, request
 
 from src.classes.elevator import Elevator
-from src.utils.constants import TIMEOUT_TIME
+from src.classes.person import Person
 
 load_dotenv()
 app = Flask(__name__)
 elevator = Elevator()
+
+
+logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+logger = logging.getLogger("Elevator")
 
 
 @app.route("/health", methods=["GET"])
@@ -39,49 +41,88 @@ def health_check():
     return Response("Elevator is Online", status=200)
 
 
-@app.route("/request", methods=["POST"])
-def make_request():
+@app.route("/step/<int:steps>", methods=["GET"])
+def step(steps: int):
     """
     Route to submit a request to the elevator system.
 
+    Parameters:
+        steps (int): The number of steps to take.
+
     Responses:
-        - **200 OK**: {}
+        - **200 OK**: "Moved 0 steps."
+    """
+    for _ in range(steps):
+        logger.debug(
+            f"After this step, the elevator is now at {elevator.current_floor} and "
+            "has a queue of stops for these floors: {elevator.stop_queue}."
+        )
+        # pylint: disable=expression-not-assigned
+        [
+            logger.debug(
+                f"Currently, there are: {len(v)} persons in the location of {k}"
+            )
+            for k, v in elevator.persons.items()
+        ]
+        # pylint: enable: expression-not-assigned
+        elevator.update()
+
+    logger.info(
+        f"After {steps} steps, the elevator is now at {elevator.current_floor} and "
+        "has a queue of stops for these floors: {elevator.stop_queue}."
+    )
+    return Response(f"Moved {steps} steps.", status=200)
+
+
+@app.route("/press_button", methods=["POST"])
+def press_button():
+    """
+    Route to submit a request to the elevator system.
+
+    Body:
+        JSON list of buttons to press, each button must follow the format of {"source": int | str, "button": int | str}.
+
+    Responses:
+        - **200 OK**: "Pushed requested button(s)"
     """
     new_request = request.get_json()
 
-    with open("./requests.json", "r", encoding="utf-8") as requests_json:
-        requests = json.load(requests_json)
-    requests.append(new_request)
-    with open("./requests.json", "w", encoding="utf-8") as requests_json:
-        json.dump(requests, requests_json, indent=2)
+    # pylint: disable=expression-not-assigned
+    [elevator.process_request(**button) for button in new_request]
+    # pylint: enable=expression-not-assigned
 
-    return Response({}, status=200)
+    return Response("Pushed requested button(s).", status=200)
 
 
-def start_flask() -> None:
-    """Runs the app via a function, so it can be used with multiprocessing."""
-    # ! NOTE: This will NOT work in debug mode !
-    app.run(debug=False, port=3148)
+@app.route("/create_person", methods=["POST"])
+def create_person():
+    """
+    Route to add a person to the elevator system.
+
+    Body:
+        JSON list of persons to add, each person must follow the format of {"origin": int , "destination": int},
+        with optional keys of {"weight": float, "cargo": float}.
+
+
+
+    Responses:
+        - **200 OK**:
+            "Created Person 0 with the following attributes: Origin: 1, Destination: 2, Weight: 150, Cargo: 25."
+    """
+    new_request = request.get_json()
+
+    res_msg = ""
+
+    for person in new_request:
+        new_person = Person(**person)
+        elevator.add_person(new_person)
+        res_msg += (
+            f"Created Person {new_person.id} with the following attributes: Origin: {new_person.location}, "
+            f"Destination: {new_person.destination}, Weight: {new_person.weight}, Cargo: {new_person.cargo}.\n"
+        )
+
+    return Response(res_msg, status=200)
 
 
 if __name__ == "__main__":
-    flask_process = multiprocessing.Process(target=start_flask, daemon=False)
-    flask_process.start()
-
-    tik = time.time()
-    while True:
-        res = health_check()
-        if res.status_code == 200:
-            break
-        if time.time() - tik > TIMEOUT_TIME:
-            raise TimeoutError
-        sleep(0.1)
-
-    elevator_process = multiprocessing.Process(
-        target=elevator.state_machine, daemon=True
-    )
-    elevator_process.start()
-
-    elevator_process.join()
-    flask_process.terminate()
-    flask_process.join()
+    app.run(debug=True, port=3148)
