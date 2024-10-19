@@ -2,7 +2,7 @@
 app.py
 Samuel Koller
 Created: 15 October 2024
-Updated: 17 October 2024
+Updated: 18 October 2024
 
 Main file for the Bluestaq Elevator Application. Houses the Flask server and relevant endpoints.
 
@@ -14,18 +14,21 @@ __version__ = "0.3.0"
 
 import multiprocessing
 from time import sleep
+
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 
 from src.classes.elevator import Elevator
+from src.utils.request_queue import initial_queue
 
-stop_queue = multiprocessing.Manager().list([2])
+# from src.utils.request_queue import stop_queue
 
 load_dotenv()
 app = Flask(__name__)
-elevator = Elevator()
+elevator = Elevator(initial_queue)
 
-@app.route("/", methods=["GET"])
+
+@app.route("/health", methods=["GET"])
 def health_check():
     """
     Health check route to ping for application status. Returns a response message and status code.
@@ -38,20 +41,26 @@ def health_check():
     """
     return jsonify({"message": "Elevator is Online"}), 200
 
-@app.route("/floor/<int:floor>", methods=["GET"])
-def add_stop(floor):
-    elevator.add_stop(floor)
-    return jsonify({}), 200
+
+# @app.route("/floor/<int:floor>", methods=["GET"])
+# def add_stop(floor):
+#     elevator.add_stop(floor)
+#     return jsonify({}), 200
+
 
 def start_flask() -> None:
-    app.run(debug=False, port=3148, )
+    """Runs the app via a function, so it can be used with multiprocessing."""
+    app.run(debug=False, port=3148)
+
 
 if __name__ == "__main__":
-    flask_process = multiprocessing.Process(target=start_flask, daemon=False)    
+    flask_process = multiprocessing.Process(target=start_flask, daemon=False)
     flask_process.start()
 
     sleep(5)
-    elevator_process = multiprocessing.Process(target=elevator.update, daemon=True)
+    elevator_process = multiprocessing.Process(
+        target=elevator.start_state_machine, daemon=True
+    )
     elevator_process.start()
 
     elevator_process.join()

@@ -18,7 +18,7 @@ You may change values in the `.env` file to reconfigure how the application work
 
 The following endpoints have been implemented.
 
-## GET
+## GET /health
 
 ### Description
 
@@ -46,3 +46,6 @@ Please update the CHANGELOG with any notable changes.
 # Author
 
 Samuel Koller: E-mail: `samuel.a.koller@gmail.com`, GitHub: `https://github.com/kollersamuel`
+
+# Future Work
+Have the elevator and flask add requests to the same queue.
