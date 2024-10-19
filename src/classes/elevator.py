@@ -99,11 +99,13 @@ class Elevator:
 
     def load(self) -> None:
         # Update locations of persons.
-        self.persons[self.current_floor] = [
+        new_current_floor_persons = []
+        new_current_floor_persons.extend(self.persons.get(self.current_floor, []))
+        new_current_floor_persons.extend([
             person
             for person in self.persons["elevator"]
             if person.destination == self.current_floor
-        ]
+        ])
         self.persons["elevator"] = [
             person
             for person in self.persons["elevator"]
@@ -112,9 +114,12 @@ class Elevator:
         total_weight = sum(
             [person.weight + person.cargo for person in self.persons["elevator"]]
         )
-        while total_weight < MAX_WEIGHT and self.persons[self.current_floor]:
-            self.persons["elevator"].append(self.persons[self.current_floor][0])
+        while total_weight < MAX_WEIGHT and self.persons.get(self.current_floor, []):
+            entered_person = self.persons[self.current_floor][0]
+            self.persons["elevator"].append(entered_person)
             self.persons[self.current_floor].pop(0)
+            self.add_stop(entered_person.destination)
+            
 
     def attempt_close(self) -> None:
         if self.stop_queue:
