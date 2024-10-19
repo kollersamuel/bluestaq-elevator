@@ -51,11 +51,10 @@ def make_request():
     """
     new_request = request.get_json()
 
-    with open("./requests.json", "r", encoding="utf-8") as requests_json:
-        requests = json.load(requests_json)
-    requests = requests + new_request
-    with open("./requests.json", "w", encoding="utf-8") as requests_json:
-        json.dump(requests, requests_json, indent=2)
+    for button in new_request:
+        new_button = Button(**button)
+        new_button.press()
+
 
     return Response({}, status=200)
 
@@ -76,7 +75,13 @@ def start_flask() -> None:
 
 
 if __name__ == "__main__":
-    # TODO: Clear "dbs"
+    # with open("./persons.json", "w", encoding="utf-8") as persons_json:
+    #     json.dump([], persons_json, indent=2)
+
+    # with open("./requests.json", "w", encoding="utf-8") as persons_json:
+    #     json.dump([], persons_json, indent=2)
+
+
     flask_process = multiprocessing.Process(target=start_flask, daemon=False)
     flask_process.start()
 

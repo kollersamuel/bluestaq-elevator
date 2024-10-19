@@ -90,8 +90,7 @@ class Elevator:
                 filtered_requests = [
                     request
                     for request in requests
-                    if not isinstance(request["button"], int)
-                    or request["button"] != self.current_floor
+                    if request["button"] != self.current_floor
                 ]
                 self.stop_queue = self.stop_queue[1:]
                 logger.error(
