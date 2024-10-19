@@ -1,0 +1,2 @@
+- Replace logger.errors with appropriate level.
+- Error handling, replace existing errors with custom.
