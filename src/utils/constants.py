@@ -8,4 +8,4 @@ Configurable constants to edit the default application.
 """
 
 TOP_FLOOR = 20  # Default: 20
-PLAYBACK_SPEED = 5  # Default: 1
+MAX_WEIGHT = 2000  # Default: 2000

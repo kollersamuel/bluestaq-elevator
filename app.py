@@ -10,7 +10,7 @@ Functions:
     health_check(): A route to check if the service is running.
 """
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 
 import logging
@@ -55,7 +55,7 @@ def step(steps: int):
     for _ in range(steps):
         logger.debug(
             f"After this step, the elevator is now at {elevator.current_floor} and "
-            "has a queue of stops for these floors: {elevator.stop_queue}."
+            f"has a status of {elevator.status} and a queue of stops for these floors: {elevator.stop_queue}."
         )
         # pylint: disable=expression-not-assigned
         [
@@ -63,13 +63,14 @@ def step(steps: int):
                 f"Currently, there are: {len(v)} persons in the location of {k}"
             )
             for k, v in elevator.persons.items()
+            if len(v)
         ]
         # pylint: enable: expression-not-assigned
         elevator.update()
 
     logger.info(
-        f"After {steps} steps, the elevator is now at {elevator.current_floor} and "
-        "has a queue of stops for these floors: {elevator.stop_queue}."
+        f"After {steps} step, the elevator is now at {elevator.current_floor} and "
+        f"has a status of {elevator.status} and a queue of stops for these floors: {elevator.stop_queue}."
     )
     return Response(f"Moved {steps} steps.", status=200)
 

@@ -29,3 +29,6 @@
 - Removed multiprocessing and infinite state machine.
 - Removed requests.json, data stored within Elevator.
 - Added Endpoints to submit requests and persons.
+
+## 0.3.2 (19 October 2024)
+
