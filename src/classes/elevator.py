@@ -8,10 +8,11 @@ Class for the Elevator object, which tracks the state an contents of the elevato
 """
 
 import bisect
-import json
 import logging
 from enum import Enum
 from time import sleep
+
+from src.classes.person import Person
 
 from ..utils import PLAYBACK_SPEED, TOP_FLOOR
 
@@ -24,6 +25,7 @@ class Status(Enum):
     IDLE = "Idle"
     UP = "Up"
     DOWN = "Down"
+    DOOR_OPEN = "DoorOpen"
 
 
 class Elevator:
@@ -56,52 +58,31 @@ class Elevator:
         self.current_floor: int = 1
         self.direction_up: bool = True
         self.top_floor: int = int(TOP_FLOOR)
+        self.persons = {}
 
-    def state_machine(self, iterations: int = 0) -> None:
-        """
-        Once called, the elevator runs as a state machine for the given number of iterations or forever.
+    def process_request(self, **kwargs):
+        button = kwargs.get("button", None)
+        source = kwargs.get("source", None)
 
-        Parameters:
-            iterations (int, optional): The number of iterations to run for, defaults to 0 (used as infinity).
-        """
-        if iterations <= 0:
-            while True:
-                self.update()
-        for _ in range(iterations):
-            self.update()
+        if source == "elevator":
+            if isinstance(button, int) and 0 < button < self.top_floor:
+                self.add_stop(button)
+        elif isinstance(source, int) and 0 < source < self.top_floor:
+            if button == "down":
+                pass
+            elif button == "up":
+                pass
 
     def update(self) -> None:
         """Determines what the next action for the elevator is."""
-        try:
-            with open("./requests.json", "r", encoding="utf-8") as requests_json:
-                requests = json.load(requests_json)
-        except:
-            requests = []
-        self.update_stops(
-            [
-                request["button"]
-                for request in requests
-                if request["source"] == "elevator"
-                and isinstance(request["button"], int)
-            ]  # Filters down all the requests to buttons pressed in the elevator that are for a floor.
-        )
-
         if self.stop_queue:
             if self.current_floor != self.stop_queue[0]:
                 self.move_to_next_floor()
             else:
-                filtered_requests = [
-                    request
-                    for request in requests
-                    if request["button"] != self.current_floor
-                ]
-                self.stop_queue = self.stop_queue[1:]
-                logger.error(
+                self.stop_queue.pop(0)
+                logger.debug(
                     f"Reached queued floor {self.current_floor}, new queue: {self.stop_queue}"
                 )
-                with open("./requests.json", "w", encoding="utf-8") as requests_json:
-                    json.dump(filtered_requests, requests_json, indent=2)
-
         else:
             self.status = Status.IDLE
 
@@ -117,32 +98,42 @@ class Elevator:
             self.status = Status.DOWN
             sleep(5 / PLAYBACK_SPEED)
             self.current_floor -= 1
-        logger.error(f"Floor: {self.current_floor}")
+        logger.info(f"Arrived at floor: {self.current_floor}")
 
-    def update_stops(self, stops: list[int]) -> None:
+    def add_stop(self, stop: int) -> None:
         """
         Processes given list of floors to stop at and queues them in a logical order.
 
         Parameters:
             stops (list[int]): A list of the floors to stop at.
         """
-        stops = list({int(stop) for stop in stops})
-        stops = [stop for stop in stops if 0 < stop <= self.top_floor]
-        if self.current_floor in stops:
+        if not 0 < stop <= self.top_floor or stop in self.stop_queue:
+            return
+        if stop == self.current_floor:
             # TODO: Open door
-            pass
-
-        stops.sort()
-        split_index: int = bisect.bisect_left(stops, self.current_floor)
+            return
+        
+        new_stops = self.stop_queue
+        new_stops.append(stop)
+        new_stops.sort()
+        split_index: int = bisect.bisect_left(new_stops, self.current_floor)
 
         if self.direction_up:
-            on_way: list[int] = stops[split_index:]
-            on_return: list[int] = list(reversed(stops[:split_index]))
+            on_way: list[int] = new_stops[split_index:]
+            on_return: list[int] = list(reversed(new_stops[:split_index]))
         else:
-            on_way: list[int] = list(reversed(stops[:split_index]))
-            on_return: list[int] = stops[split_index:]
+            on_way: list[int] = list(reversed(new_stops[:split_index]))
+            on_return: list[int] = new_stops[split_index:]
 
         self.stop_queue = on_way + on_return
+        logger.debug(self.stop_queue)
 
-        if self.stop_queue:
-            logger.error(self.stop_queue)
+
+    def add_person(self, person: Person):
+        person_location = person.origin
+        if self.persons.get(person_location):
+            self.persons[person_location].append(person)
+        else:
+            self.persons[person_location] = [person]
+        print(self.persons)
+        self.add_stop(person.destination)
