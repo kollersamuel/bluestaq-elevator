@@ -20,7 +20,7 @@
 - Flask and Elevator run in separate and parallel processes.
 - Updated health check endpoint to have a URI suffix.
 - Added a make request endpoint so a user can manually send a request to the elevator system.
-- Added a start state machine method in elevator to run the state machine a infinite/finite number of iterations.
+- Added a state machine method in elevator to run the state machine a infinite/finite number of iterations.
 - Added a top floor and playback speed constants.
 - Updated the stop queue ordering function in elevator to accept all requests at once.
 - Added a TODO.md with future tasks.

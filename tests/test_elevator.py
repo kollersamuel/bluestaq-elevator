@@ -52,6 +52,19 @@ def test_elevator_add_multiple_stops():
     assert test_elevator.stop_queue == [3, 4]
 
 
+def test_elevator_delete_stop():
+    """
+    - Tests the ability of the elevator to stop if a request was deleted.
+    """
+    test_elevator = Elevator()
+    test_elevator.update_stops([4])
+    test_elevator.state_machine(1)
+    test_elevator.update_stops([])
+    test_elevator.state_machine(1)
+    assert test_elevator.stop_queue == []
+    assert test_elevator.status == Status.IDLE
+
+
 def test_elevator_add_passed_stops_below():
     """
     - Tests the ability to multiple stops to an elevator.

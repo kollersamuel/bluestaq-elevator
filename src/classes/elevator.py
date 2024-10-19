@@ -39,14 +39,14 @@ class Elevator:
         top_floor (int): The maximum floor of the elevator.
 
     Functions:
-        start_state_machine(iterations=0): Runs the state machine for the given number of iterations, or forever.
+        state_machine(iterations=0): Runs the state machine for the given number of iterations, or forever.
         update(): Determines and executes the next action.
         move_to_next_floor(): Moves to the next floor in the queue.
-        add_stop(): Adds a floor to the queue.
+        update_stops(list[int]): Adds a floor to the queue.
 
     Examples:
         elevator = Elevator()
-        elevator.start_state_machine()
+        elevator.state_machine()
     """
 
     def __init__(self) -> None:

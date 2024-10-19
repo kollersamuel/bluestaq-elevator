@@ -21,8 +21,7 @@ from dotenv import load_dotenv
 from flask import Flask, Response, request
 
 from src.classes.elevator import Elevator
-
-# from src.utils.request_queue import stop_queue
+from src.utils.constants import TIMEOUT_TIME
 
 load_dotenv()
 app = Flask(__name__)
@@ -74,7 +73,7 @@ if __name__ == "__main__":
         res = health_check()
         if res.status_code == 200:
             break
-        if time.time() - tik > 10:
+        if time.time() - tik > TIMEOUT_TIME:
             raise TimeoutError
         sleep(0.1)
 
