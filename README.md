@@ -30,6 +30,18 @@ Health Check for the Application
   - Description: Application is running.
   - Message: "Elevator is Online"
 
+## POST /request
+
+### Description
+
+Route to submit a request to the elevator system.
+
+### Responses
+
+- **200 OK**
+  - Description: Request successfully submitted.
+  - Message: {}
+
 # Contributing
 
 When contributing please continue to use the consistency standards set in place. To do this, ensure you have installed the development requirements. If so, run these commands (or run `. precommit.sh`):

@@ -1,0 +1,26 @@
+[
+  {
+    "source": "elevator",
+    "button": 2
+  },
+  {
+    "source": "elevator",
+    "button": 3
+  },
+  {
+    "source": 1,
+    "button": "up",
+    "requestor": {
+      "weight": 150,
+      "cargo": 25
+    }
+  },
+  {
+    "source": "elevator",
+    "button": [12, "close"],
+    "requestor": {
+      "weight": 150,
+      "cargo": 25
+    }
+  }
+]

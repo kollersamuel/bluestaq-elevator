@@ -2,7 +2,7 @@
 elevator.py
 Samuel Koller
 Created: 17 October 2024
-Updated: 18 October 2024
+Updated: 19 October 2024
 
 Class for the Elevator object, which tracks the state an contents of the elevator.
 """
@@ -45,20 +45,25 @@ class Elevator:
         add_stop(): Adds a floor to the queue.
 
     Examples:
-        elevator = Elevator([])
+        elevator = Elevator()
         elevator.start_state_machine()
     """
 
-    def __init__(self, initial_queue) -> None:
+    def __init__(self) -> None:
         """Initializes an Elevator class, sets initial state to Idle."""
-        self.stop_queue = initial_queue
+        self.stop_queue: list[int] = []
         self.status: str = Status.IDLE
         self.current_floor: int = 1
         self.direction_up: bool = True
         self.top_floor: int = int(TOP_FLOOR)
 
-    def start_state_machine(self, iterations: int = 0) -> None:
-        """Once called, the elevator runs as a state machine for the given number of iterations or forever."""
+    def state_machine(self, iterations: int = 0) -> None:
+        """
+        Once called, the elevator runs as a state machine for the given number of iterations or forever.
+
+        Parameters:
+            iterations (int, optional): The number of iterations to run for, defaults to 0 (used as infinity).
+        """
         if iterations <= 0:
             while True:
                 self.update()
@@ -67,7 +72,7 @@ class Elevator:
 
     def update(self) -> None:
         """Determines what the next action for the elevator is."""
-        with open("./requests.json", "r") as requests_json:
+        with open("./requests.json", "r", encoding="utf-8") as requests_json:
             requests = json.load(requests_json)
         self.update_stops(
             [
@@ -92,7 +97,7 @@ class Elevator:
                 logger.error(
                     f"Reached queued floor {self.current_floor}, new queue: {self.stop_queue}"
                 )
-                with open("./requests.json", "w") as requests_json:
+                with open("./requests.json", "w", encoding="utf-8") as requests_json:
                     json.dump(filtered_requests, requests_json, indent=2)
 
         else:
@@ -113,8 +118,14 @@ class Elevator:
         logger.error(f"Floor: {self.current_floor}")
 
     def update_stops(self, stops: list[int]) -> None:
-        stops = list(set(stops))
-        stops = [stop for stop in stops if stop > 0 and stop <= self.top_floor]
+        """
+        Processes given list of floors to stop at and queues them in a logical order.
+
+        Parameters:
+            stops (list[int]): A list of the floors to stop at.
+        """
+        stops = list({int(stop) for stop in stops})
+        stops = [stop for stop in stops if 0 < stop <= self.top_floor]
         if self.current_floor in stops:
             # TODO: Open door
             pass
