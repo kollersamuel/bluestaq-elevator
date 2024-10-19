@@ -10,7 +10,7 @@ Functions:
     health_check(): A route to check if the service is running.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 
 import logging
@@ -46,6 +46,9 @@ def step(steps: int):
     """
     Route to submit a request to the elevator system.
 
+    Parameters:
+        steps (int): The number of steps to take.
+
     Responses:
         - **200 OK**: "Moved 0 steps."
     """
@@ -76,8 +79,11 @@ def press_button():
     """
     Route to submit a request to the elevator system.
 
+    Body:
+        JSON list of buttons to press, each button must follow the format of {"source": int | str, "button": int | str}.
+
     Responses:
-        - **200 OK**: "Pushed requested buttons"
+        - **200 OK**: "Pushed requested button(s)"
     """
     new_request = request.get_json()
 
@@ -85,13 +91,19 @@ def press_button():
     [elevator.process_request(**button) for button in new_request]
     # pylint: enable=expression-not-assigned
 
-    return Response("Pushed requested buttons.", status=200)
+    return Response("Pushed requested button(s).", status=200)
 
 
 @app.route("/create_person", methods=["POST"])
 def create_person():
     """
     Route to add a person to the elevator system.
+
+    Body:
+        JSON list of persons to add, each person must follow the format of {"origin": int , "destination": int},
+        with optional keys of {"weight": float, "cargo": float}.
+
+
 
     Responses:
         - **200 OK**:

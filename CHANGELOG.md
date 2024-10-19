@@ -22,6 +22,10 @@
 - Added a make request endpoint so a user can manually send a request to the elevator system.
 - Added a state machine method in elevator to run the state machine a infinite/finite number of iterations.
 - Added a top floor and playback speed constants.
-- Updated the stop queue ordering function in elevator to accept all requests at once.
 - Added a TODO.md with future tasks.
 - Added a requests.json, which is used as the queued requests "database", and added prepopulated data.
+
+## 0.3.1 (19 October 2024)
+- Removed multiprocessing and infinite state machine.
+- Removed requests.json, data stored within Elevator.
+- Added Endpoints to submit requests and persons.
