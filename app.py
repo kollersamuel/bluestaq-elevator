@@ -21,6 +21,8 @@ from dotenv import load_dotenv
 from flask import Flask, Response, request
 
 from src.classes.elevator import Elevator
+from src.classes.person import Person
+from src.classes.button import Button
 from src.utils.constants import TIMEOUT_TIME
 
 load_dotenv()
@@ -51,9 +53,18 @@ def make_request():
 
     with open("./requests.json", "r", encoding="utf-8") as requests_json:
         requests = json.load(requests_json)
-    requests.append(new_request)
+    requests = requests + new_request
     with open("./requests.json", "w", encoding="utf-8") as requests_json:
         json.dump(requests, requests_json, indent=2)
+
+    return Response({}, status=200)
+
+
+@app.route("/create_person", methods=["POST"])
+def create_person():
+    new_request = request.get_json()
+
+    [Person(**person) for person in new_request]
 
     return Response({}, status=200)
 
@@ -65,6 +76,7 @@ def start_flask() -> None:
 
 
 if __name__ == "__main__":
+    # TODO: Clear "dbs"
     flask_process = multiprocessing.Process(target=start_flask, daemon=False)
     flask_process.start()
 

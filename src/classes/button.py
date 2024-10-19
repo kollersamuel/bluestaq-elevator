@@ -1,7 +1,10 @@
-# class Button:
-#     def __init__(self, name: str) -> None:
-#         self.name = name
-#         self.status = False
+import json
 
-#     def press(self) -> None:
-#         self.status = True
+
+class Button:
+    def __init__(self, **kwargs):
+        self.source = kwargs.get("source")
+        self.button = kwargs.get("button")
+    
+    def press(self):
+        pass
