@@ -1,10 +1,10 @@
 # bluestaq-elevator
 
-Bluestaq Elevator Problem
+[Bluestaq Elevator Problem](https://github.com/kollersamuel/bluestaq-elevator)
 
 Elevator program written as part of the interview process for Bluestaq, Colorado Springs. The goal of this application is to have a continuously running elevator system with randomly generated events. A user may use endpoints to manually add events.
 
-`https://github.com/kollersamuel/bluestaq-elevator`
+A major assumption of this program is that this is a standalone application for a single machine and user. If future intentions were to have multiple users access the elevator or to integrate this into a system as a microservice, a key required change would be to not use `requests.json` as a "database"/"queue"; Rather one would likely substitute this with a service such as RabbitMQ. The reason for this is the danger of reading and writing to the file from multiple processes, which can lead to file (in this case the database) corruption and would ultimately cause the application to have a fatal exception. In the current set up, it is presumably near impossible to overload the system when manually accessing endpoints.
 
 # Setup
 
@@ -46,6 +46,3 @@ Please update the CHANGELOG with any notable changes.
 # Author
 
 Samuel Koller: E-mail: `samuel.a.koller@gmail.com`, GitHub: `https://github.com/kollersamuel`
-
-# Future Work
-Have the elevator and flask add requests to the same queue.

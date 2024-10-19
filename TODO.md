@@ -1,0 +1,5 @@
+- Replace logger.errors with appropriate level.
+- Lint, Test, and Finish documentation from requests addition.
+- Add new endpoint documentation in-line and in README.
+- Clean up Elevator intial stop queue in init
+- Fix old tests

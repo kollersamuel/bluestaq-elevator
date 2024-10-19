@@ -12,20 +12,20 @@ Functions:
 
 __version__ = "0.3.0"
 
+import json
 import multiprocessing
 from time import sleep
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 from src.classes.elevator import Elevator
-from src.utils.request_queue import initial_queue
 
 # from src.utils.request_queue import stop_queue
 
 load_dotenv()
 app = Flask(__name__)
-elevator = Elevator(initial_queue)
+elevator = Elevator([])
 
 
 @app.route("/health", methods=["GET"])
@@ -42,14 +42,22 @@ def health_check():
     return jsonify({"message": "Elevator is Online"}), 200
 
 
-# @app.route("/floor/<int:floor>", methods=["GET"])
-# def add_stop(floor):
-#     elevator.add_stop(floor)
-#     return jsonify({}), 200
+@app.route("/request", methods=["POST"])
+def make_request():
+    new_request = request.get_json()
+
+    with open("./requests.json", "r") as requests_json:
+        requests = json.load(requests_json)
+    requests.append(new_request)
+    with open("./requests.json", "w") as requests_json:
+        json.dump(requests, requests_json, indent=2)
+
+    return jsonify({}), 200
 
 
 def start_flask() -> None:
     """Runs the app via a function, so it can be used with multiprocessing."""
+    # ! NOTE: This will NOT work in debug mode !
     app.run(debug=False, port=3148)
 
 

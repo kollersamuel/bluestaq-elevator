@@ -10,12 +10,12 @@ Test Suite for the Elevator class.
 from src.classes.elevator import Elevator, Status
 
 
-def test_elevator_add_stop():
+def test_elevator_update_stops():
     """
     - Tests the ability to add a stop to an elevator.
     """
     test_elevator = Elevator([])
-    test_elevator.add_stop(2)
+    test_elevator.update_stops([2])
     assert test_elevator.stop_queue == [2]
 
 
@@ -25,18 +25,18 @@ def test_elevator_add_ignored_stops():
     - Tests the ability of the elevator to not add a floor that does not exist.
     """
     test_elevator = Elevator([])
-    test_elevator.add_stop(0)
-    test_elevator.add_stop(1)
-    test_elevator.add_stop(100)
+    test_elevator.update_stops([0])
+    test_elevator.update_stops([1])
+    test_elevator.update_stops([100])
     assert test_elevator.stop_queue == []
 
 
-def test_elevator_add_stop_multiple_times():
+def test_elevator_update_stops_multiple_times():
     """
     - Tests the ability of the elevator to not add the requested floor to the stop queue if already queued.
     """
-    test_elevator = Elevator([4])
-    test_elevator.add_stop(4)
+    test_elevator = Elevator([])
+    test_elevator.update_stops([4, 4])
     assert test_elevator.stop_queue == [4]
 
 
@@ -46,8 +46,7 @@ def test_elevator_add_multiple_stops():
     - Tests the ability of the elevator to organize the stops in the correcct order.
     """
     test_elevator = Elevator([])
-    test_elevator.add_stop(4)
-    test_elevator.add_stop(3)
+    test_elevator.update_stops([4, 3])
     assert test_elevator.stop_queue == [3, 4]
 
 
@@ -58,9 +57,7 @@ def test_elevator_add_passed_stops_below():
     """
     test_elevator = Elevator([])
     test_elevator.current_floor = 5
-    test_elevator.add_stop(10)
-    test_elevator.add_stop(3)
-    test_elevator.add_stop(1)
+    test_elevator.update_stops([10, 3, 1])
     assert test_elevator.stop_queue == [10, 3, 1]
 
 
@@ -71,11 +68,8 @@ def test_elevator_add_passed_stops_above():
     """
     test_elevator = Elevator([2])
     test_elevator.current_floor = 5
-    test_elevator.update(
-        
-    )
-    test_elevator.add_stop(10)
-    test_elevator.add_stop(3)
+    test_elevator.update()
+    test_elevator.update_stops([2, 10, 3])
     assert test_elevator.stop_queue == [3, 2, 10]
 
 

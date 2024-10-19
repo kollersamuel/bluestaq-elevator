@@ -8,6 +8,7 @@ Class for the Elevator object, which tracks the state an contents of the elevato
 """
 
 import bisect
+import json
 import logging
 from enum import Enum
 from time import sleep
@@ -66,14 +67,34 @@ class Elevator:
 
     def update(self) -> None:
         """Determines what the next action for the elevator is."""
+        with open("./requests.json", "r") as requests_json:
+            requests = json.load(requests_json)
+        self.update_stops(
+            [
+                request["button"]
+                for request in requests
+                if request["source"] == "elevator"
+                and isinstance(request["button"], int)
+            ]  # Filters down all the requests to buttons pressed in the elevator that are for a floor.
+        )
+
         if self.stop_queue:
             if self.current_floor != self.stop_queue[0]:
                 self.move_to_next_floor()
             else:
+                filtered_requests = [
+                    request
+                    for request in requests
+                    if not isinstance(request["button"], int)
+                    or request["button"] != self.current_floor
+                ]
                 self.stop_queue = self.stop_queue[1:]
                 logger.error(
                     f"Reached queued floor {self.current_floor}, new queue: {self.stop_queue}"
                 )
+                with open("./requests.json", "w") as requests_json:
+                    json.dump(filtered_requests, requests_json, indent=2)
+
         else:
             self.status = Status.IDLE
 
@@ -91,38 +112,24 @@ class Elevator:
             self.current_floor -= 1
         logger.error(f"Floor: {self.current_floor}")
 
-    def add_stop(self, requested_floor: int) -> None:
-        """
-        Adds the requested floor the the priority queue in the correct position.
+    def update_stops(self, stops: list[int]) -> None:
+        stops = list(set(stops))
+        stops = [stop for stop in stops if stop > 0 and stop <= self.top_floor]
+        if self.current_floor in stops:
+            # TODO: Open door
+            pass
 
-        Ignores the request if the floor does not exist or the request is for the current floor.
-
-        Parameters:
-            requested_floor (int): The floor to add to the priority queue.
-        """
-        # Catch a request to the current floor, and open door.
-        # TODO: Have this open doors.
-        if requested_floor == self.current_floor:
-            return
-        if requested_floor <= 0 or requested_floor > self.top_floor:
-            return
-        if self.stop_queue:
-            if requested_floor in self.stop_queue:
-                return
-            self.stop_queue.append(requested_floor)
-        else:
-            self.stop_queue = [requested_floor]
-
-        self.stop_queue.sort()
-        split_index: int = bisect.bisect_left(self.stop_queue, self.current_floor)
+        stops.sort()
+        split_index: int = bisect.bisect_left(stops, self.current_floor)
 
         if self.direction_up:
-            on_way: list[int] = self.stop_queue[split_index:]
-            on_return: list[int] = list(reversed(self.stop_queue[:split_index]))
+            on_way: list[int] = stops[split_index:]
+            on_return: list[int] = list(reversed(stops[:split_index]))
         else:
-            on_way: list[int] = list(reversed(self.stop_queue[:split_index]))
-            on_return: list[int] = self.stop_queue[split_index:]
+            on_way: list[int] = list(reversed(stops[:split_index]))
+            on_return: list[int] = stops[split_index:]
 
         self.stop_queue = on_way + on_return
 
-        logger.error(self.stop_queue)
+        if self.stop_queue:
+            logger.error(self.stop_queue)

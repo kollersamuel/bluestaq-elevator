@@ -8,4 +8,3 @@ Contains utilities for the program, such as configurations.
 """
 
 from .constants import *
-from .request_queue import *
