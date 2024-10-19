@@ -1,7 +1,17 @@
-initial_id = -1
+"""
+id_generator.py
+Samuel Koller
+Created: 19 October 2024
+Updated: 19 October 2024
+
+Generates unique identifiers.
+"""
+
+INITIAL_ID = -1
 
 
 def id_generator():
-    global initial_id
-    initial_id += 1
-    return initial_id
+    """Returns the current id and increments."""
+    global INITIAL_ID  # pylint: disable=global-statement
+    INITIAL_ID += 1
+    return INITIAL_ID

@@ -34,8 +34,8 @@ class Elevator:
 
     Attributes:
         stop_queue (list[int]): A priority queue of floors to stop at, priority is determined by closest floor in
-        status (str): The status of the elevator. Can be a string of select choices defined by the Status enum.
             direction of travel.
+        status (str): The status of the elevator. Can be a string of select choices defined by the Status enum.
         current_floor (int): The current floor the elevator is on.
         direction_up (bool): The current direction of the elevator.
         top_floor (int): The maximum floor of the elevator.
@@ -61,6 +61,12 @@ class Elevator:
         self.persons = {}
 
     def process_request(self, **kwargs):
+        """
+        Processes the given button request and determines what to do.
+
+        Parameters:
+            **kwargs: A dictionary of the following structure: {"source": int | str, "button": int | str}
+        """
         button = kwargs.get("button", None)
         source = kwargs.get("source", None)
 
@@ -69,9 +75,9 @@ class Elevator:
                 self.add_stop(button)
         elif isinstance(source, int) and 0 < source < self.top_floor:
             if button == "down":
-                pass
+                self.add_stop(source)
             elif button == "up":
-                pass
+                self.add_stop(source)
 
     def update(self) -> None:
         """Determines what the next action for the elevator is."""
@@ -112,7 +118,7 @@ class Elevator:
         if stop == self.current_floor:
             # TODO: Open door
             return
-        
+
         new_stops = self.stop_queue
         new_stops.append(stop)
         new_stops.sort()
@@ -128,12 +134,16 @@ class Elevator:
         self.stop_queue = on_way + on_return
         logger.debug(self.stop_queue)
 
-
     def add_person(self, person: Person):
-        person_location = person.origin
+        """
+        Adds a person to the elevator and queues their location.
+
+        Parameters:
+            person (Person): The person to add to the elevator.
+        """
+        person_location = person.location
         if self.persons.get(person_location):
             self.persons[person_location].append(person)
         else:
             self.persons[person_location] = [person]
-        print(self.persons)
-        self.add_stop(person.destination)
+        self.add_stop(person.location)
