@@ -20,7 +20,7 @@ logger = logging.Logger("Elevator")
 class Status(Enum):
     """Possible Statuses of the Elevator."""
 
-    IDLE = "Idle"
+    IDLE = "Idle" # Idle means closed and not moving.
     UP = "Up"
     DOWN = "Down"
     OPEN = "Open"
@@ -52,6 +52,8 @@ class Elevator:
     def __init__(self) -> None:
         """Initializes an Elevator class, sets initial state to Idle."""
         self.stop_queue: list[int] = []
+        self.down_stop_queue: list[int] = []
+        self.up_stop_queue: list[int] = []
         self.status: str = Status.OPEN
         self.current_floor: int = 1
         self.direction_up: bool = True
@@ -86,7 +88,6 @@ class Elevator:
                     self.move_to_next_floor()
             else:
                 if self.status in [Status.DOWN, Status.UP]:
-                    logger.debug(f"Reached queued floor {self.current_floor}")
                     self.open()
         else:
             self.status = Status.IDLE
@@ -94,8 +95,17 @@ class Elevator:
     def open(self) -> None:
         """Opens the doors."""
         self.status = Status.OPEN
-        self.load()
         self.stop_queue.pop(0)
+        if not self.stop_queue:
+            self.up_stop_queue = []
+            self.down_stop_queue = []
+        if self.current_floor == 1:
+            self.down_stop_queue = []
+        if self.current_floor == TOP_FLOOR:
+            self.up_stop_queue = []
+        self.load()
+        if self.stop_queue:
+            self.direction_up = self.stop_queue[0] > self.current_floor
 
     def load(self) -> None:
         """
@@ -110,18 +120,22 @@ class Elevator:
         total_weight = sum(
             person.weight + person.cargo for person in self.persons["elevator"]
         )
+
+        enter_queue_index = 0
         while (
             total_weight < MAX_WEIGHT
-            and self.persons.get(self.current_floor, [])
+            and enter_queue_index < len(self.persons.get(self.current_floor, []))
             and len(self.persons["elevator"]) < MAX_CAPACITY
         ):
-            entered_person = self.persons[self.current_floor][0]
-            self.persons["elevator"].append(entered_person)
-            self.persons[self.current_floor].pop(0)
-            self.add_stop(entered_person.destination)
-            total_weight = sum(
-                person.weight + person.cargo for person in self.persons["elevator"]
-            )
+            next_in_line = self.persons[self.current_floor][enter_queue_index]
+            if (next_in_line.destination > self.current_floor and self.direction_up) or (next_in_line.destination < self.current_floor and not self.direction_up):
+                self.persons["elevator"].append(next_in_line)
+                self.persons[self.current_floor].pop(enter_queue_index)
+                self.add_stop(next_in_line.destination, next_in_line.destination > self.current_floor)
+                total_weight = sum(
+                    person.weight + person.cargo for person in self.persons["elevator"]
+                )
+            else: enter_queue_index+=1
 
     def close(self) -> None:
         """Closes the elevator and determines direction of travel."""
@@ -139,22 +153,37 @@ class Elevator:
             self.direction_up = False
             self.status = Status.DOWN
             self.current_floor -= 1
-        logger.info(f"Arrived at floor: {self.current_floor}")
 
-    def add_stop(self, stop: int) -> None:
+    def add_stop(self, stop: int, up: bool = None) -> None:
         """
         Processes given list of floors to stop at and queues them in a logical order.
 
         Parameters:
             stops (list[int]): A list of the floors to stop at.
         """
-        if not 0 < stop <= TOP_FLOOR or stop in self.stop_queue:
+        logger.error(f"add {stop}")
+        logger.error(f"up {self.up_stop_queue}")
+        logger.error(f"down {self.down_stop_queue}")
+        if stop == 1 and up:
             return
+        if stop == TOP_FLOOR and up == False:
+            return
+        
         if stop == self.current_floor:
             # TODO: Open door
             return
+        if not 0 < stop <= TOP_FLOOR:
+            return
+        # Requested stop should just happen in current direction.
+        if up is None:
+            up = self.direction_up
+        if up:
+            new_stops = self.up_stop_queue
+        elif up == False:
+            new_stops = self.down_stop_queue
 
-        new_stops = self.stop_queue
+        if stop in new_stops:
+            return
         new_stops.append(stop)
         new_stops.sort()
         split_index: int = bisect.bisect_left(new_stops, self.current_floor)
@@ -166,8 +195,14 @@ class Elevator:
             on_way: list[int] = list(reversed(new_stops[:split_index]))
             on_return: list[int] = new_stops[split_index:]
 
-        self.stop_queue = on_way + on_return
-        logger.debug(self.stop_queue)
+        new_stops = on_way + on_return
+        if self.direction_up:
+            self.stop_queue = self.up_stop_queue
+            self.stop_queue.extend(self.down_stop_queue)
+        else:
+            self.stop_queue = self.down_stop_queue
+            self.stop_queue.extend(self.up_stop_queue)
+        logger.error(f"queue {self.stop_queue}")
 
     def add_person(self, person: Person):
         """
@@ -185,4 +220,4 @@ class Elevator:
         if person_location == self.current_floor and self.status == Status.OPEN:
             self.load()
         else:
-            self.add_stop(person.location)
+            self.add_stop(person.location, person.destination > person.location)
