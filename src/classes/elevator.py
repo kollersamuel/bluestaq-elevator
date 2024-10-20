@@ -102,15 +102,6 @@ class Elevator:
         When the elevator is open, it exchanges persons. If the person's destination is the current floor, they are
         off boarded, if there are persons waiting to board, they board without breaching the limits.
         """
-        new_current_floor_persons = []
-        new_current_floor_persons.extend(self.persons.get(self.current_floor, []))
-        new_current_floor_persons.extend(
-            [
-                person
-                for person in self.persons["elevator"]
-                if person.destination == self.current_floor
-            ]
-        )
         self.persons["elevator"] = [
             person
             for person in self.persons["elevator"]
@@ -128,6 +119,9 @@ class Elevator:
             self.persons["elevator"].append(entered_person)
             self.persons[self.current_floor].pop(0)
             self.add_stop(entered_person.destination)
+            total_weight = sum(
+                person.weight + person.cargo for person in self.persons["elevator"]
+            )
 
     def close(self) -> None:
         """Closes the elevator and determines direction of travel."""

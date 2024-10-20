@@ -182,3 +182,17 @@ def test_elevator_add_person_to_current_floor():
 
     test_elevator.add_person(test_person)
     assert len(test_elevator.persons.get("elevator")) == 1
+
+
+def test_elevator_stop_adding_at_capacity():
+    """
+    - Tests the ability to only load the elevator to capacity.
+    """
+    test_elevator = Elevator()
+    test_person_1 = Person(**{"origin": 1, "destination": 10, "weight": 2000})
+    test_person_2 = Person(**{"origin": 1, "destination": 10})
+
+    test_elevator.add_person(test_person_1)
+    test_elevator.add_person(test_person_2)
+    assert len(test_elevator.persons.get("elevator")) == 1
+    assert len(test_elevator.persons.get(1)) == 1

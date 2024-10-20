@@ -31,4 +31,6 @@
 - Added Endpoints to submit requests and persons.
 
 ## 0.3.2 (19 October 2024)
-
+- Elevator picks up and drops off persons.
+- Elevator has new state of open to load and unload passengers.
+- Elevator has capacity limits.
