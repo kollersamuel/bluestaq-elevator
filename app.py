@@ -112,6 +112,11 @@ def create_person():
 
     res_msg = ""
 
+    # Validate inputs
+    for person in new_request:
+        if person.get("origin") == 13 or person.get("destination") == 13:
+            return Response("One of the submitted persons was invalid", status=400)
+
     for person in new_request:
         new_person = Person(**person)
         elevator.add_person(new_person)
