@@ -52,8 +52,7 @@ class Elevator:
     def __init__(self) -> None:
         """Initializes an Elevator class, sets initial state to Idle."""
         self.stop_queue: list[int] = []
-        self.down_stop_queue: list[int] = []
-        self.up_stop_queue: list[int] = []
+        self.next_cycle = []
         self.status: str = Status.OPEN
         self.current_floor: int = 1
         self.direction_up: bool = True
@@ -91,6 +90,13 @@ class Elevator:
                     self.open()
         else:
             self.status = Status.IDLE
+            [self.add_stop(stop["stop"]) for stop in self.next_cycle]
+        if self.current_floor == 1:
+            self.direction_up = True
+            [self.add_stop(stop["stop"]) for stop in self.next_cycle if stop["up"]]
+        elif self.current_floor == TOP_FLOOR:
+            self.direction_up = False
+            [self.add_stop(stop["stop"]) for stop in self.next_cycle if stop["down"]]
 
     def open(self) -> None:
         """Opens the doors."""
@@ -154,17 +160,18 @@ class Elevator:
             self.status = Status.DOWN
             self.current_floor -= 1
 
-    def add_stop(self, stop: int, up: bool = None) -> None:
+    def add_stop(self, stop: int, up=None) -> None:
         """
         Processes given list of floors to stop at and queues them in a logical order.
 
         Parameters:
             stops (list[int]): A list of the floors to stop at.
         """
-        logger.error(f"add {stop}")
-        logger.error(f"up {self.up_stop_queue}")
-        logger.error(f"down {self.down_stop_queue}")
-        if stop == 1 and up:
+        # If the person needs to wait for the next cycle
+        if up == self.direction_up == True and stop < self.current_floor or up == self.direction_up == False  and   stop > self.current_floor:
+            self.next_cycle.append({"stop": stop, "up": up})
+            return
+        if not 0 < stop <= TOP_FLOOR or stop in self.stop_queue:
             return
         if stop == TOP_FLOOR and up == False:
             return
@@ -195,14 +202,8 @@ class Elevator:
             on_way: list[int] = list(reversed(new_stops[:split_index]))
             on_return: list[int] = new_stops[split_index:]
 
-        new_stops = on_way + on_return
-        if self.direction_up:
-            self.stop_queue = self.up_stop_queue
-            self.stop_queue.extend(self.down_stop_queue)
-        else:
-            self.stop_queue = self.down_stop_queue
-            self.stop_queue.extend(self.up_stop_queue)
-        logger.error(f"queue {self.stop_queue}")
+        self.stop_queue = list(set(on_way)) + list(set(on_return))
+        logger.debug(self.stop_queue)
 
     def add_person(self, person: Person):
         """
