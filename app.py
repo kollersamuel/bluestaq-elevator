@@ -64,7 +64,7 @@ def step(steps: int):
                 f"Currently, there are: {len(v)} persons in the location of {k}"
             )
             for k, v in elevator.persons.items()
-            if len(v)
+            if v
         ]
         # pylint: enable: expression-not-assigned
 

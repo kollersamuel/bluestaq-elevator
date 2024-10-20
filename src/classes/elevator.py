@@ -80,13 +80,14 @@ class Elevator:
         """Determines what the next action for the elevator is."""
         if self.stop_queue:
             if self.current_floor != self.stop_queue[0]:
-                self.move_to_next_floor()
+                if self.status == Status.OPEN:
+                    self.close()
+                else:
+                    self.move_to_next_floor()
             else:
                 if self.status in [Status.DOWN, Status.UP]:
                     logger.debug(f"Reached queued floor {self.current_floor}")
                     self.open()
-                elif self.status == Status.OPEN:
-                    self.attempt_close()
         else:
             self.status = Status.IDLE
 
@@ -97,7 +98,10 @@ class Elevator:
         self.stop_queue.pop(0)
 
     def load(self) -> None:
-        # Update locations of persons.
+        """
+        When the elevator is open, it exchanges persons. If the person's destination is the current floor, they are
+        off boarded, if there are persons waiting to board, they board without breaching the limits.
+        """
         new_current_floor_persons = []
         new_current_floor_persons.extend(self.persons.get(self.current_floor, []))
         new_current_floor_persons.extend(
@@ -113,7 +117,7 @@ class Elevator:
             if person.destination != self.current_floor
         ]
         total_weight = sum(
-            [person.weight + person.cargo for person in self.persons["elevator"]]
+            person.weight + person.cargo for person in self.persons["elevator"]
         )
         while (
             total_weight < MAX_WEIGHT
@@ -125,13 +129,11 @@ class Elevator:
             self.persons[self.current_floor].pop(0)
             self.add_stop(entered_person.destination)
 
-    def attempt_close(self) -> None:
-        if self.stop_queue:
-            self.status = (
-                Status.UP if self.stop_queue[0] > self.current_floor else Status.DOWN
-            )
-        else:
-            self.status = Status.IDLE
+    def close(self) -> None:
+        """Closes the elevator and determines direction of travel."""
+        self.status = (
+            Status.UP if self.stop_queue[0] > self.current_floor else Status.DOWN
+        )
 
     def move_to_next_floor(self) -> None:
         """Moves the elevator in a determined direction."""
