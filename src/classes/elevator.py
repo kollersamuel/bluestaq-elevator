@@ -175,9 +175,9 @@ class Elevator:
             # TODO: Open door
             return
         if priority:
-            self.priority_stops.append(stop)
-            if self.stop_queue[: len(self.priority_stops)] != self.priority_stops:
-                self.stop_queue = self.priority_stops + self.stop_queue
+            if stop not in self.stop_queue[: len(self.priority_stops)]:
+                self.priority_stops.append(stop)
+                self.stop_queue = [stop] + self.stop_queue
             return
 
         new_stops = self.stop_queue

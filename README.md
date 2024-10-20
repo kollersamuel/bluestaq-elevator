@@ -6,7 +6,7 @@ Elevator program written as part of the interview process for Bluestaq, Colorado
 
 A major assumption of this program is that this is a finite state machine and the application is built for a single machine and user.
 
-This program also assumes that there is no thirteenth floor, similar to real life.
+This program simulates some real attributes of most elevators, including there not being a thirteenth floor, and being able to make priority stops.
 
 # Setup
 
