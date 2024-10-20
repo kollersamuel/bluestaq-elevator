@@ -10,11 +10,9 @@ Class for the Elevator object, which tracks the state an contents of the elevato
 import bisect
 import logging
 from enum import Enum
-from time import sleep
 
 from src.classes.person import Person
-
-from ..utils import PLAYBACK_SPEED, TOP_FLOOR
+from src.utils.constants import MAX_CAPACITY, MAX_WEIGHT, TOP_FLOOR
 
 logger = logging.Logger("Elevator")
 
@@ -25,7 +23,7 @@ class Status(Enum):
     IDLE = "Idle"
     UP = "Up"
     DOWN = "Down"
-    DOOR_OPEN = "DoorOpen"
+    OPEN = "Open"
 
 
 class Elevator:
@@ -54,11 +52,10 @@ class Elevator:
     def __init__(self) -> None:
         """Initializes an Elevator class, sets initial state to Idle."""
         self.stop_queue: list[int] = []
-        self.status: str = Status.IDLE
+        self.status: str = Status.OPEN
         self.current_floor: int = 1
         self.direction_up: bool = True
-        self.top_floor: int = int(TOP_FLOOR)
-        self.persons = {}
+        self.persons = {"elevator": []}
 
     def process_request(self, **kwargs):
         """
@@ -71,9 +68,9 @@ class Elevator:
         source = kwargs.get("source", None)
 
         if source == "elevator":
-            if isinstance(button, int) and 0 < button < self.top_floor:
+            if isinstance(button, int) and 0 < button < TOP_FLOOR:
                 self.add_stop(button)
-        elif isinstance(source, int) and 0 < source < self.top_floor:
+        elif isinstance(source, int) and 0 < source < TOP_FLOOR:
             if button == "down":
                 self.add_stop(source)
             elif button == "up":
@@ -83,26 +80,64 @@ class Elevator:
         """Determines what the next action for the elevator is."""
         if self.stop_queue:
             if self.current_floor != self.stop_queue[0]:
-                self.move_to_next_floor()
+                if self.status == Status.OPEN:
+                    self.close()
+                else:
+                    self.move_to_next_floor()
             else:
-                self.stop_queue.pop(0)
-                logger.debug(
-                    f"Reached queued floor {self.current_floor}, new queue: {self.stop_queue}"
-                )
+                if self.status in [Status.DOWN, Status.UP]:
+                    logger.debug(f"Reached queued floor {self.current_floor}")
+                    self.open()
         else:
             self.status = Status.IDLE
+
+    def open(self) -> None:
+        """Opens the doors."""
+        self.status = Status.OPEN
+        self.load()
+        self.stop_queue.pop(0)
+
+    def load(self) -> None:
+        """
+        When the elevator is open, it exchanges persons. If the person's destination is the current floor, they are
+        off boarded, if there are persons waiting to board, they board without breaching the limits.
+        """
+        self.persons["elevator"] = [
+            person
+            for person in self.persons["elevator"]
+            if person.destination != self.current_floor
+        ]
+        total_weight = sum(
+            person.weight + person.cargo for person in self.persons["elevator"]
+        )
+        while (
+            total_weight < MAX_WEIGHT
+            and self.persons.get(self.current_floor, [])
+            and len(self.persons["elevator"]) < MAX_CAPACITY
+        ):
+            entered_person = self.persons[self.current_floor][0]
+            self.persons["elevator"].append(entered_person)
+            self.persons[self.current_floor].pop(0)
+            self.add_stop(entered_person.destination)
+            total_weight = sum(
+                person.weight + person.cargo for person in self.persons["elevator"]
+            )
+
+    def close(self) -> None:
+        """Closes the elevator and determines direction of travel."""
+        self.status = (
+            Status.UP if self.stop_queue[0] > self.current_floor else Status.DOWN
+        )
 
     def move_to_next_floor(self) -> None:
         """Moves the elevator in a determined direction."""
         if self.stop_queue[0] > self.current_floor:
             self.direction_up = True
             self.status = Status.UP
-            sleep(5 / PLAYBACK_SPEED)
             self.current_floor += 1
         else:
             self.direction_up = False
             self.status = Status.DOWN
-            sleep(5 / PLAYBACK_SPEED)
             self.current_floor -= 1
         logger.info(f"Arrived at floor: {self.current_floor}")
 
@@ -113,7 +148,7 @@ class Elevator:
         Parameters:
             stops (list[int]): A list of the floors to stop at.
         """
-        if not 0 < stop <= self.top_floor or stop in self.stop_queue:
+        if not 0 < stop <= TOP_FLOOR or stop in self.stop_queue:
             return
         if stop == self.current_floor:
             # TODO: Open door
@@ -146,4 +181,8 @@ class Elevator:
             self.persons[person_location].append(person)
         else:
             self.persons[person_location] = [person]
-        self.add_stop(person.location)
+        # ? If the added person is on the floor of the current elevator and it is open, load immediately.
+        if person_location == self.current_floor and self.status == Status.OPEN:
+            self.load()
+        else:
+            self.add_stop(person.location)

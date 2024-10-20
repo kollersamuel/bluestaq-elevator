@@ -101,6 +101,7 @@ def test_elevator_add_passed_stops_above():
     test_elevator.current_floor = 5
     test_elevator.add_stop(2)
     test_elevator.update()
+    test_elevator.update()
     test_elevator.add_stop(10)
     test_elevator.add_stop(3)
     test_elevator.update()
@@ -127,6 +128,7 @@ def test_state_machine_down():
     test_elevator.add_stop(2)
     test_elevator.current_floor = 3
     test_elevator.update()
+    test_elevator.update()
 
     assert test_elevator.current_floor == 2
     assert test_elevator.stop_queue == [2]
@@ -135,22 +137,24 @@ def test_state_machine_down():
 
 def test_state_machine_stop():
     """
-    - Tests the ability to stop at the next queued floor.
+    - Tests the ability to stop at the next queued floor, then continue.
     """
     test_elevator = Elevator()
-    test_elevator.add_stop(2)
     test_elevator.current_floor = 3
-    test_elevator.update()
-    test_elevator.update()
+    test_elevator.add_stop(2)
+    test_elevator.add_stop(1)
+    for _ in range(3):
+        test_elevator.update()
 
     assert test_elevator.current_floor == 2
-    assert test_elevator.stop_queue == []
+    assert test_elevator.stop_queue == [1]
+    assert test_elevator.status == Status.OPEN
+
+    test_elevator.update()
+
+    assert test_elevator.stop_queue == [1]
+    assert test_elevator.current_floor == 2
     assert test_elevator.status == Status.DOWN
-
-    test_elevator.update()
-
-    assert test_elevator.current_floor == 2
-    assert test_elevator.status == Status.IDLE
 
 
 def test_elevator_add_person():
@@ -166,3 +170,29 @@ def test_elevator_add_person():
     test_elevator.add_person(test_person_2)
     assert len(test_elevator.persons.get(10)) == 2
     assert test_elevator.stop_queue == [10]
+
+
+def test_elevator_add_person_to_current_floor():
+    """
+    - Tests the ability to load a passenger.
+    - Tests the ability of the elevator to add a person to the elevator after spawning if they are on the current floor.
+    """
+    test_elevator = Elevator()
+    test_person = Person(**{"origin": 1, "destination": 10})
+
+    test_elevator.add_person(test_person)
+    assert len(test_elevator.persons.get("elevator")) == 1
+
+
+def test_elevator_stop_adding_at_capacity():
+    """
+    - Tests the ability to only load the elevator to capacity.
+    """
+    test_elevator = Elevator()
+    test_person_1 = Person(**{"origin": 1, "destination": 10, "weight": 2000})
+    test_person_2 = Person(**{"origin": 1, "destination": 10})
+
+    test_elevator.add_person(test_person_1)
+    test_elevator.add_person(test_person_2)
+    assert len(test_elevator.persons.get("elevator")) == 1
+    assert len(test_elevator.persons.get(1)) == 1
