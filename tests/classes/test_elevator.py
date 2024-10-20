@@ -75,6 +75,18 @@ def test_elevator_process_request():
     assert test_elevator.stop_queue == [2, 3, 14]
 
 
+def test_elevator_process_priority_request():
+    """
+    - Tests the ability to process a priority request and queue the right floors.
+    """
+    test_elevator = Elevator()
+    test_elevator.process_request(**{"source": "elevator", "button": 2})
+    test_elevator.process_request(**{"source": 3, "button": "up"})
+    test_elevator.process_request(**{"source": 14, "button": "down"})
+    test_elevator.process_request(**{"source": "elevator", "button": ["close", 15]})
+    assert test_elevator.stop_queue == [15, 2, 3, 14]
+
+
 def test_elevator_delete_stop():
     """
     - Tests the ability of the elevator to stop if a request was deleted.

@@ -52,6 +52,7 @@ class Elevator:
     def __init__(self) -> None:
         """Initializes an Elevator class, sets initial state to Idle."""
         self.stop_queue: list[int] = []
+        self.priority_stops = []
         self.status: str = Status.OPEN
         self.current_floor: int = 1
         self.direction_up: bool = True
@@ -64,12 +65,20 @@ class Elevator:
         Parameters:
             **kwargs: A dictionary of the following structure: {"source": int | str, "button": int | str}
         """
+        priority = False
         button = kwargs.get("button", None)
+        if isinstance(button, list):
+            if "close" in button:
+                priority = True
+                button.remove("close")
+                # Make sure a number is at the beginning, when taking first index.
+                button = sorted(button, key=lambda x: (isinstance(x, str), x))
+                button = button[0]
         source = kwargs.get("source", None)
 
         if source == "elevator":
             if isinstance(button, int) and 0 < button < TOP_FLOOR:
-                self.add_stop(button)
+                self.add_stop(button, priority)
         elif isinstance(source, int) and 0 < source < TOP_FLOOR:
             if button == "down":
                 self.add_stop(source)
@@ -81,6 +90,9 @@ class Elevator:
         if self.stop_queue:
             if self.current_floor != self.stop_queue[0]:
                 if self.status == Status.OPEN:
+                    self.stop_queue = [
+                        stop for stop in self.stop_queue if stop != self.current_floor
+                    ]
                     self.close()
                 else:
                     self.move_to_next_floor()
@@ -99,6 +111,9 @@ class Elevator:
         """Opens the doors."""
         self.status = Status.OPEN
         self.stop_queue.pop(0)
+        self.priority_stops = [
+            stop for stop in self.priority_stops if stop != self.current_floor
+        ]
         self.load()
 
     def load(self) -> None:
@@ -147,7 +162,7 @@ class Elevator:
             self.move_to_next_floor()
         logger.info(f"Arrived at floor: {self.current_floor}")
 
-    def add_stop(self, stop: int) -> None:
+    def add_stop(self, stop: int, priority=False) -> None:
         """
         Processes given list of floors to stop at and queues them in a logical order.
 
@@ -158,6 +173,11 @@ class Elevator:
             return
         if stop == self.current_floor:
             # TODO: Open door
+            return
+        if priority:
+            if stop not in self.stop_queue[: len(self.priority_stops)]:
+                self.priority_stops.append(stop)
+                self.stop_queue = [stop] + self.stop_queue
             return
 
         new_stops = self.stop_queue
@@ -173,7 +193,6 @@ class Elevator:
             on_return: list[int] = new_stops[split_index:]
 
         self.stop_queue = on_way + on_return
-        logger.debug(self.stop_queue)
 
     def add_person(self, person: Person):
         """
