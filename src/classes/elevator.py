@@ -91,12 +91,23 @@ class Elevator:
         else:
             self.status = Status.IDLE
             [self.add_stop(stop["stop"]) for stop in self.next_cycle]
+            self.next_cycle = []
         if self.current_floor == 1:
             self.direction_up = True
-            [self.add_stop(stop["stop"]) for stop in self.next_cycle if stop["up"]]
+            for stop in self.next_cycle:
+                new_cycle_list = []
+                if stop["up"]:
+                    self.add_stop(stop["stop"])
+                else:
+                    new_cycle_list.append(stop)
         elif self.current_floor == TOP_FLOOR:
             self.direction_up = False
-            [self.add_stop(stop["stop"]) for stop in self.next_cycle if stop["down"]]
+            for stop in self.next_cycle:
+                new_cycle_list = []
+                if not stop["up"]:
+                    self.add_stop(stop["stop"])
+                else:
+                    new_cycle_list.append(stop)
 
     def open(self) -> None:
         """Opens the doors."""
