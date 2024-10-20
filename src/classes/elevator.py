@@ -2,7 +2,7 @@
 elevator.py
 Samuel Koller
 Created: 17 October 2024
-Updated: 20 October 2024
+Updated: 19 October 2024
 
 Class for the Elevator object, which tracks the state an contents of the elevator.
 """
@@ -90,16 +90,12 @@ class Elevator:
                     self.open()
         else:
             self.status = Status.IDLE
-        if self.current_floor == 1:
-            self.direction_up = True
-        elif self.current_floor == TOP_FLOOR:
-            self.direction_up = False
 
     def open(self) -> None:
         """Opens the doors."""
         self.status = Status.OPEN
-        self.stop_queue.pop(0)
         self.load()
+        self.stop_queue.pop(0)
 
     def load(self) -> None:
         """
