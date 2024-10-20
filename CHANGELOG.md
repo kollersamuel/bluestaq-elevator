@@ -34,3 +34,6 @@
 - Elevator picks up and drops off persons.
 - Elevator has new state of open to load and unload passengers.
 - Elevator has capacity limits.
+
+## 0.3.3 (20 October 2024)
+- Correct bug in which elevator fails to turn around.
