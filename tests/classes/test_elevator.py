@@ -20,6 +20,17 @@ def test_elevator_add_stop():
     assert test_elevator.stop_queue == [2]
 
 
+def test_elevator_switch_direction_at_limit():
+    """
+    - Tests the ability to change the direction of travel if the elevator has reached a limit.
+    """
+    test_elevator = Elevator()
+    test_elevator.current_floor = 20
+    test_elevator.update()
+
+    assert test_elevator.direction_up is False
+
+
 def test_elevator_add_ignored_stops():
     """
     - Tests the ability of the elevator to not add the current floor to the stop queue.
