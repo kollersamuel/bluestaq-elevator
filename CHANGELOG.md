@@ -39,4 +39,4 @@
 - Correct bug in which elevator fails to turn around.
 
 ## 0.3.4 (20 October 2024)
-- Removed the thirteenth floor
+- Removed the thirteenth floor.
