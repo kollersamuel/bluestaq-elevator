@@ -138,14 +138,14 @@ def test_state_machine_stop():
     - Tests the ability to stop at the next queued floor.
     """
     test_elevator = Elevator()
-    test_elevator.add_stop(2)
     test_elevator.current_floor = 3
+    test_elevator.add_stop(2)
     test_elevator.update()
     test_elevator.update()
 
     assert test_elevator.current_floor == 2
     assert test_elevator.stop_queue == []
-    assert test_elevator.status == Status.DOWN
+    assert test_elevator.status == Status.OPEN
 
     test_elevator.update()
 

@@ -53,6 +53,7 @@ def step(steps: int):
         - **200 OK**: "Moved 0 steps."
     """
     for _ in range(steps):
+        elevator.update()
         logger.debug(
             f"After this step, the elevator is now at {elevator.current_floor} and "
             f"has a status of {elevator.status} and a queue of stops for these floors: {elevator.stop_queue}."
@@ -66,10 +67,9 @@ def step(steps: int):
             if len(v)
         ]
         # pylint: enable: expression-not-assigned
-        elevator.update()
 
     logger.info(
-        f"After {steps} step, the elevator is now at {elevator.current_floor} and "
+        f"After {steps} step(s), the elevator is now at {elevator.current_floor} and "
         f"has a status of {elevator.status} and a queue of stops for these floors: {elevator.stop_queue}."
     )
     return Response(f"Moved {steps} steps.", status=200)
@@ -103,8 +103,6 @@ def create_person():
     Body:
         JSON list of persons to add, each person must follow the format of {"origin": int , "destination": int},
         with optional keys of {"weight": float, "cargo": float}.
-
-
 
     Responses:
         - **200 OK**:

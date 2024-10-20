@@ -12,7 +12,7 @@ import logging
 from enum import Enum
 
 from src.classes.person import Person
-from src.utils.constants import MAX_WEIGHT, TOP_FLOOR
+from src.utils.constants import MAX_CAPACITY, MAX_WEIGHT, TOP_FLOOR
 
 logger = logging.Logger("Elevator")
 
@@ -56,7 +56,6 @@ class Elevator:
         self.current_floor: int = 1
         self.direction_up: bool = True
         self.persons = {"elevator": []}
-        self.load()
 
     def process_request(self, **kwargs):
         """
@@ -101,11 +100,13 @@ class Elevator:
         # Update locations of persons.
         new_current_floor_persons = []
         new_current_floor_persons.extend(self.persons.get(self.current_floor, []))
-        new_current_floor_persons.extend([
-            person
-            for person in self.persons["elevator"]
-            if person.destination == self.current_floor
-        ])
+        new_current_floor_persons.extend(
+            [
+                person
+                for person in self.persons["elevator"]
+                if person.destination == self.current_floor
+            ]
+        )
         self.persons["elevator"] = [
             person
             for person in self.persons["elevator"]
@@ -114,12 +115,15 @@ class Elevator:
         total_weight = sum(
             [person.weight + person.cargo for person in self.persons["elevator"]]
         )
-        while total_weight < MAX_WEIGHT and self.persons.get(self.current_floor, []):
+        while (
+            total_weight < MAX_WEIGHT
+            and self.persons.get(self.current_floor, [])
+            and len(self.persons["elevator"]) < MAX_CAPACITY
+        ):
             entered_person = self.persons[self.current_floor][0]
             self.persons["elevator"].append(entered_person)
             self.persons[self.current_floor].pop(0)
             self.add_stop(entered_person.destination)
-            
 
     def attempt_close(self) -> None:
         if self.stop_queue:
@@ -181,4 +185,8 @@ class Elevator:
             self.persons[person_location].append(person)
         else:
             self.persons[person_location] = [person]
-        self.add_stop(person.location)
+        # ? If the added person is on the floor of the current elevator and it is open, load immediately.
+        if person_location == self.current_floor and self.status == Status.OPEN:
+            self.load()
+        else:
+            self.add_stop(person.location)
