@@ -56,7 +56,7 @@ def step(steps: int):
         elevator.update()
         logger.debug(
             f"After this step, the elevator is now at {elevator.current_floor} and "
-            f"has a status of {elevator.status} and a queue of stops for these floors: {elevator.stop_queue}."
+            f"has a status of {elevator.status} and a queue of stops for these floors: {elevator.stop_queue} and unorganized queue of {elevator.next_cycle}."
         )
         # pylint: disable=expression-not-assigned
         [

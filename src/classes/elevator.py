@@ -52,6 +52,7 @@ class Elevator:
     def __init__(self) -> None:
         """Initializes an Elevator class, sets initial state to Idle."""
         self.stop_queue: list[int] = []
+        self.next_cycle = []
         self.status: str = Status.OPEN
         self.current_floor: int = 1
         self.direction_up: bool = True
@@ -90,12 +91,30 @@ class Elevator:
                     self.open()
         else:
             self.status = Status.IDLE
+            [self.add_stop(stop["stop"]) for stop in self.next_cycle]
+            self.next_cycle = []
+        if self.current_floor == 1:
+            self.direction_up = True
+            for stop in self.next_cycle:
+                new_cycle_list = []
+                if stop["up"]:
+                    self.add_stop(stop["stop"])
+                else:
+                    new_cycle_list.append(stop)
+        elif self.current_floor == TOP_FLOOR:
+            self.direction_up = False
+            for stop in self.next_cycle:
+                new_cycle_list = []
+                if not stop["up"]:
+                    self.add_stop(stop["stop"])
+                else:
+                    new_cycle_list.append(stop)
 
     def open(self) -> None:
         """Opens the doors."""
         self.status = Status.OPEN
-        self.load()
         self.stop_queue.pop(0)
+        self.load()
 
     def load(self) -> None:
         """
@@ -111,17 +130,19 @@ class Elevator:
             person.weight + person.cargo for person in self.persons["elevator"]
         )
         while (
-            total_weight < MAX_WEIGHT
-            and self.persons.get(self.current_floor, [])
+            self.persons.get(self.current_floor, [])
             and len(self.persons["elevator"]) < MAX_CAPACITY
         ):
-            entered_person = self.persons[self.current_floor][0]
-            self.persons["elevator"].append(entered_person)
-            self.persons[self.current_floor].pop(0)
-            self.add_stop(entered_person.destination)
+            entering_person = self.persons[self.current_floor][0]
             total_weight = sum(
-                person.weight + person.cargo for person in self.persons["elevator"]
-            )
+                    person.weight + person.cargo for person in self.persons["elevator"]
+                ) + entering_person.weight + entering_person.cargo
+            if total_weight < MAX_WEIGHT:
+                self.persons["elevator"].append(entering_person)
+                self.persons[self.current_floor].pop(0)
+                self.add_stop(entering_person.destination)
+            else: break
+                
 
     def close(self) -> None:
         """Closes the elevator and determines direction of travel."""
@@ -131,6 +152,7 @@ class Elevator:
 
     def move_to_next_floor(self) -> None:
         """Moves the elevator in a determined direction."""
+        prev_dir = self.direction_up
         if self.stop_queue[0] > self.current_floor:
             self.direction_up = True
             self.status = Status.UP
@@ -141,14 +163,18 @@ class Elevator:
             self.current_floor -= 1
         logger.info(f"Arrived at floor: {self.current_floor}")
 
-    def add_stop(self, stop: int) -> None:
+    def add_stop(self, stop: int, up=None) -> None:
         """
         Processes given list of floors to stop at and queues them in a logical order.
 
         Parameters:
             stops (list[int]): A list of the floors to stop at.
         """
+         # If the person needs to wait for the next cycle
         if not 0 < stop <= TOP_FLOOR or stop in self.stop_queue:
+            return
+        if up == self.direction_up == True and stop < self.current_floor or up == self.direction_up == False  and   stop > self.current_floor:
+            self.next_cycle.append({"stop": stop, "up": up})
             return
         if stop == self.current_floor:
             # TODO: Open door
@@ -185,4 +211,4 @@ class Elevator:
         if person_location == self.current_floor and self.status == Status.OPEN:
             self.load()
         else:
-            self.add_stop(person.location)
+            self.add_stop(person.location, person.destination > person.location)
