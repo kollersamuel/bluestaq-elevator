@@ -119,6 +119,18 @@ def test_elevator_add_passed_stops_above():
     assert test_elevator.stop_queue == [3, 2, 10]
 
 
+def test_elevator_skip_floor_thirteen():
+    """
+    - Tests the ability of the elevator to skip the thirteenth floor.
+    """
+    test_elevator = Elevator()
+    test_elevator.current_floor = 12
+    test_elevator.add_stop(14)
+    test_elevator.update()
+    test_elevator.update()
+    assert test_elevator.current_floor == 14
+
+
 def test_state_machine_up():
     """
     - Tests the ability to move up to the next floor if there is a higher floor queued next.

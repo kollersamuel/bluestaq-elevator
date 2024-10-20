@@ -6,6 +6,8 @@ Elevator program written as part of the interview process for Bluestaq, Colorado
 
 A major assumption of this program is that this is a finite state machine and the application is built for a single machine and user.
 
+This program also assumes that there is no thirteenth floor, similar to real life.
+
 # Setup
 
 This application was build using Python 3.11, for best results use this version.

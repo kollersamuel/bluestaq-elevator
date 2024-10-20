@@ -8,9 +8,12 @@ Main file for the Bluestaq Elevator Application. Houses the Flask server and rel
 
 Functions:
     health_check(): A route to check if the service is running.
+    step(int): A route to induce a given number of steps for the state machine.
+    press_button(): A route to manually press a button.
+    step(): A route to add persons to the system.
 """
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 
 import logging
@@ -111,6 +114,11 @@ def create_person():
     new_request = request.get_json()
 
     res_msg = ""
+
+    # Validate inputs
+    for person in new_request:
+        if person.get("origin") == 13 or person.get("destination") == 13:
+            return Response("One of the submitted persons was invalid", status=400)
 
     for person in new_request:
         new_person = Person(**person)

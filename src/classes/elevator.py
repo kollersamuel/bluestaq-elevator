@@ -143,6 +143,8 @@ class Elevator:
             self.direction_up = False
             self.status = Status.DOWN
             self.current_floor -= 1
+        if self.current_floor == 13:
+            self.move_to_next_floor()
         logger.info(f"Arrived at floor: {self.current_floor}")
 
     def add_stop(self, stop: int) -> None:
