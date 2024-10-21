@@ -59,7 +59,7 @@ def step(steps: int):
         elevator.update()
         logger.debug(
             f"After this step, the elevator is now at {elevator.current_floor} and "
-            f"has a status of {elevator.status} and a queue of stops for these floors: {elevator.stop_queue}."
+            f"has a status of  and a queue of stops for these floors: {elevator.priority_queue}, {elevator.up_queue}, {elevator.down_queue}."
         )
         # pylint: disable=expression-not-assigned
         [
@@ -73,7 +73,7 @@ def step(steps: int):
 
     logger.info(
         f"After {steps} step(s), the elevator is now at {elevator.current_floor} and "
-        f"has a status of {elevator.status} and a queue of stops for these floors: {elevator.stop_queue}."
+        f"has a status of and a queue of stops for these floors: {elevator.priority_queue}, {elevator.up_queue}, {elevator.down_queue}."
     )
     return Response(f"Moved {steps} steps.", status=200)
 
