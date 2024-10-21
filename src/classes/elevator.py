@@ -125,6 +125,7 @@ class Elevator:
             for person in self.persons["elevator"]
             if person.destination != self.current_floor
         ]
+
         total_weight = sum(
             person.weight + person.cargo for person in self.persons["elevator"]
         )
@@ -153,6 +154,13 @@ class Elevator:
                         for person in self.persons["elevator"]
                     )
             entering_person_index += 1
+
+        # If no one is in the elevator but there are people waiting to get on, the elevator must be switching direction.
+        if len(self.persons.get("elevator")) == 0 and len(self.persons.get(self.current_floor, [])):
+            self.direction_up = not self.direction_up
+            self.open()
+            self.up_queue = [stop for stop in self.up_queue if stop != self.current_floor]
+            self.down_queue = [stop for stop in self.down_queue if stop != self.current_floor]
 
     def move_up(self) -> None:
         """Moves the elevator in a determined direction."""
@@ -245,11 +253,7 @@ class Elevator:
         if person.location == self.current_floor and self.is_open:
             self.open()
         else:
-            if person.location == 1:
-                self.add_down_stop(person.location)
-            elif person.location == TOP_FLOOR:
-                self.add_up_stop(person.location)
-            elif person.location < person.destination:
+            if person.location < person.destination:
                 self.add_up_stop(person.location)
             else:
                 self.add_down_stop(person.location)

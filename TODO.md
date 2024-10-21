@@ -1,2 +1,2 @@
 - Error handling, replace existing errors with custom.
-- Pick up people in direction of travel
+- Elevator goes to 0 and 21 and bounces back and doesn't pick up people at 1 and 20
