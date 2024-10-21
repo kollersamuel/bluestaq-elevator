@@ -27,6 +27,7 @@ from src.classes.person import Person
 load_dotenv()
 app = Flask(__name__)
 elevator = Elevator()
+elevator.current_floor=5
 
 
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")

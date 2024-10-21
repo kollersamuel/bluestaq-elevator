@@ -16,6 +16,7 @@ from src.utils.constants import MAX_CAPACITY, MAX_WEIGHT, TOP_FLOOR
 
 logger = logging.Logger("Elevator")
 
+
 class Elevator:
     """
     The Elevator object: transports persons to their requested destination.
@@ -99,7 +100,11 @@ class Elevator:
                 else:
                     self.move_down()
             else:
-                self.move_down()
+                if self.down_queue:
+                    if self.down_queue[0] < self.current_floor:
+                        self.move_down()
+                    else:
+                        self.move_up()
 
         elif not self.direction_up:
             if self.down_queue:
@@ -111,11 +116,16 @@ class Elevator:
                 else:
                     self.move_up()
             else:
-                self.move_up()
+                if self.up_queue:
+                    if self.up_queue[0] < self.current_floor:
+                        self.move_down()
+                    else:
+                        self.move_up()
 
     def open(self) -> None:
-        """Opens the doors."""
         """
+        Opens the doors.
+
         When the elevator is open, it exchanges persons. If the person's destination is the current floor, they are
         off boarded, if there are persons waiting to board, they board without breaching the limits.
         """
@@ -131,7 +141,8 @@ class Elevator:
         )
         entering_person_index = 0
         while (
-            total_weight < MAX_WEIGHT and self.persons.get(self.current_floor)
+            total_weight < MAX_WEIGHT
+            and self.persons.get(self.current_floor)
             and len(self.persons.get(self.current_floor)) > entering_person_index
             and len(self.persons["elevator"]) < MAX_CAPACITY
         ):
@@ -156,11 +167,17 @@ class Elevator:
             entering_person_index += 1
 
         # If no one is in the elevator but there are people waiting to get on, the elevator must be switching direction.
-        if len(self.persons.get("elevator")) == 0 and len(self.persons.get(self.current_floor, [])):
+        if len(self.persons.get("elevator")) == 0 and len(
+            self.persons.get(self.current_floor, [])
+        ):
             self.direction_up = not self.direction_up
             self.open()
-            self.up_queue = [stop for stop in self.up_queue if stop != self.current_floor]
-            self.down_queue = [stop for stop in self.down_queue if stop != self.current_floor]
+            self.up_queue = [
+                stop for stop in self.up_queue if stop != self.current_floor
+            ]
+            self.down_queue = [
+                stop for stop in self.down_queue if stop != self.current_floor
+            ]
 
     def move_up(self) -> None:
         """Moves the elevator in a determined direction."""
