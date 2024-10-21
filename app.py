@@ -27,7 +27,6 @@ from src.classes.person import Person
 load_dotenv()
 app = Flask(__name__)
 elevator = Elevator()
-elevator.current_floor=5
 
 
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -60,7 +59,7 @@ def step(steps: int):
         elevator.update()
         logger.debug(
             f"After this step, the elevator is now at {elevator.current_floor} and "
-            f"has a status of  and a queue of stops for these floors: {elevator.priority_queue}, {elevator.up_queue}, {elevator.down_queue}."
+            f"has a status of {'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors: Priority: {elevator.priority_queue}, Up: {elevator.up_queue}, Down: {elevator.down_queue}."
         )
         # pylint: disable=expression-not-assigned
         [
@@ -74,7 +73,7 @@ def step(steps: int):
 
     logger.info(
         f"After {steps} step(s), the elevator is now at {elevator.current_floor} and "
-        f"has a status of and a queue of stops for these floors: {elevator.priority_queue}, {elevator.up_queue}, {elevator.down_queue}."
+            f"has a status of {'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors: Priority: {elevator.priority_queue}, Up: {elevator.up_queue}, Down: {elevator.down_queue}."
     )
     return Response(f"Moved {steps} steps.", status=200)
 
@@ -129,6 +128,7 @@ def create_person():
             f"Destination: {new_person.destination}, Weight: {new_person.weight}, Cargo: {new_person.cargo}.\n"
         )
 
+    logger.info(res_msg)
     return Response(res_msg, status=200)
 
 
