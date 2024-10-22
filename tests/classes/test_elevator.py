@@ -7,9 +7,12 @@ Updated: 22 October 2024
 Test Suite for the Elevator class.
 """
 
+import pytest
+
 from src.classes.elevator import Elevator
 from src.classes.person import Person
 from src.utils.constants import MAX_WEIGHT, TOP_FLOOR
+from src.utils.custom_exceptions import InvalidButton
 
 
 def test_elevator_add_stop():
@@ -83,6 +86,63 @@ def test_elevator_process_priority_request():
     test_elevator.process_request(**{"source": "elevator", "button": ["close", 15]})
 
     assert test_elevator.priority_queue == [15]
+
+
+def test_elevator_process_invalid_request_source():
+    """
+    - Tests the ability to throw an exception if a request is sent from a floor that doesn't exist.
+    """
+    test_elevator = Elevator()
+    with pytest.raises(InvalidButton):
+        test_elevator.process_request(**{"source": 0, "button": "up"})
+
+
+def test_elevator_process_invalid_request_button():
+    """
+    - Tests the ability to throw an exception if a request is sent from a floor that doesn't exist.
+    """
+    test_elevator = Elevator()
+    with pytest.raises(InvalidButton):
+        test_elevator.process_request(**{"source": "elevator", "button": TOP_FLOOR + 1})
+
+
+def test_elevator_process_invalid_priority_request():
+    """
+    - Tests the ability to throw an exception if a priority floor that doesn't exist is requested.
+    """
+    test_elevator = Elevator()
+    with pytest.raises(InvalidButton):
+        test_elevator.process_request(**{"source": "elevator", "button": ["close", 13]})
+
+
+def test_elevator_process_invalid_request_button_str():
+    """
+    - Tests the ability to throw an exception if a request button is an unknown string.
+    """
+    test_elevator = Elevator()
+    with pytest.raises(InvalidButton):
+        test_elevator.process_request(**{"source": 1, "button": "sideways"})
+
+
+def test_elevator_process_invalid_request_button_source():
+    """
+    - Tests the ability to throw an exception if a request source is an unknown string.
+    """
+    test_elevator = Elevator()
+    with pytest.raises(InvalidButton):
+        test_elevator.process_request(**{"source": "lobby", "button": 1})
+
+
+def test_elevator_process_invalid_request_button_types():
+    """
+    - Tests the ability to throw an exception if a request is sent with two string values.
+    - Tests the ability to throw an exception if a request is sent with a float value.
+    """
+    test_elevator = Elevator()
+    with pytest.raises(InvalidButton):
+        test_elevator.process_request(**{"source": "elevator", "button": "up"})
+    with pytest.raises(InvalidButton):
+        test_elevator.process_request(**{"source": 1, "button": 3})
 
 
 def test_elevator_add_passed_stops_below():

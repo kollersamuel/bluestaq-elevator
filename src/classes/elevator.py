@@ -12,6 +12,7 @@ import logging
 
 from src.classes.person import Person
 from src.utils.constants import MAX_CAPACITY, MAX_WEIGHT, TOP_FLOOR
+from src.utils.custom_exceptions import InvalidButton
 
 logger = logging.Logger("Elevator")
 
@@ -54,22 +55,49 @@ class Elevator:
             button (int | str | list[int | str])
         """
         priority = False
+
+        # Check for priority queuing
         if isinstance(button, list):
             if "close" in button:
                 priority = True
-                button.remove("close")
+                # ? This is done here to return the correct argument in press_button() in app.py
                 # Make sure a number is at the beginning, when taking first index.
+                if (
+                    13 in button
+                    or not 1
+                    <= sorted(button, key=lambda x: (isinstance(x, str), x))[0]
+                    <= TOP_FLOOR
+                ):
+                    raise InvalidButton()
                 button = sorted(button, key=lambda x: (isinstance(x, str), x))
                 button = button[0]
 
-        if source == "elevator":
-            if isinstance(button, int) and 0 < button < TOP_FLOOR:
+        self.process_button(source, button, priority)
+
+    def process_button(self, source, button, priority) -> None:
+        """Ensures button combination is valid"""
+        if isinstance(source, int):
+            if source == 13 or not 1 <= source <= TOP_FLOOR:
+                raise InvalidButton()
+            if isinstance(button, str):
+                if button.lower() == "down":
+                    self.add_down_stop(source)
+                elif button.lower() == "up":
+                    self.add_up_stop(source)
+                else:
+                    raise InvalidButton()
+            else:
+                raise InvalidButton()
+
+        if isinstance(source, str):
+            if source.lower() != "elevator":
+                raise InvalidButton()
+            if isinstance(button, int):
+                if button == 13 or not 1 <= button <= TOP_FLOOR:
+                    raise InvalidButton()
                 self.add_stop(button, priority)
-        elif isinstance(source, int) and 0 < source < TOP_FLOOR:
-            if button == "down":
-                self.add_down_stop(source)
-            elif button == "up":
-                self.add_up_stop(source)
+            else:
+                raise InvalidButton()
 
     def update(self) -> None:
         """Determines what the next action for the elevator is."""

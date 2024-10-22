@@ -13,7 +13,7 @@ Functions:
     step(): A route to add persons to the system.
 """
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 
 import logging
@@ -23,6 +23,7 @@ from flask import Flask, request
 
 from src.classes.elevator import Elevator
 from src.classes.person import Person
+from src.utils.custom_exceptions import InvalidButton, InvalidFloor
 
 load_dotenv()
 app = Flask(__name__)
@@ -93,7 +94,7 @@ def press_button():
 
     Responses:
         - **200 OK**: "Succesfully pressed requested button(s)."
-        - **400 OK**: "Submitted button(s) invalid, details show invalid button(s)."
+        - **400 OK**: "Submitted button invalid, details show invalid button."
     """
     new_request = request.get_json()
 
@@ -102,34 +103,19 @@ def press_button():
 
     # Validate inputs
     for button in new_request:
-        if (
-            isinstance(button.get("button"), int)
-            and button.get("button") == 13
-            or isinstance(button.get("button"), list)
-            and 13 in button.get("button")
-        ):
-            response_message = (
-                "Submitted button(s) invalid, details show invalid button(s)."
-            )
+        try:
+            elevator.process_request(**button)
             response["Buttons"].append(
-                {
-                    "source": button.get("source"),
-                    "button": button.get("button"),
-                }
+                {"button": button.get("button"), "source": button.get("source")}
             )
+        except InvalidButton as exc:
+            response["Buttons"] = [
+                {"button": button.get("button"), "source": button.get("source")}
+            ]
+            response_message = "Submitted button invalid, details show invalid button."
+            return f"{response_message}\n{exc}\n{response}", 400
 
-    if response["Buttons"]:
-        return f"{response_message}\n{response}", 400
-    response_message = "Succesfully pressed requested button(s)."
-
-    for button in new_request:
-        elevator.process_request(**button)
-        response["Buttons"].append(
-            {
-                "source": button.get("source"),
-                "button": button.get("button"),
-            }
-        )
+    response_message = "Succesfully created requested person(s)."
 
     return f"{response_message}\n{response}", 200
 
@@ -145,7 +131,7 @@ def create_person():
 
     Responses:
         - **200 OK**: "Succesfully created requested person(s)."
-        - **400 ERROR**: "Submitted person(s) invalid, details show invalid person(s)."
+        - **400 ERROR**: "Submitted person invalid, details show invalid person."
     """
     new_request = request.get_json()
 
@@ -154,33 +140,31 @@ def create_person():
 
     # Validate inputs
     for person in new_request:
-        if person.get("origin") == 13 or person.get("destination") == 13:
-            response_message = (
-                "Submitted person(s) invalid, details show invalid person(s)."
-            )
+        try:
+            new_person = Person(**person)
+            elevator.add_person(new_person)
             response["Persons"].append(
+                {
+                    "id": new_person.id,
+                    "origin": new_person.location,
+                    "destination": new_person.destination,
+                    "weight": new_person.weight,
+                    "cargo": new_person.cargo,
+                }
+            )
+        except InvalidFloor as exc:
+            response["Persons"] = [
                 {
                     "origin": person.get("origin"),
                     "destination": person.get("destination"),
+                    "weight": person.get("weight", "No weight provided"),
+                    "cargo": person.get("weight", "No cargo provided"),
                 }
-            )
+            ]
+            response_message = "Submitted person invalid, details show invalid person."
+            return f"{response_message}\n{exc}\n{response}", 400
 
-    if response["Persons"]:
-        return f"{response_message}\n{response}", 400
     response_message = "Succesfully created requested person(s)."
-
-    for person in new_request:
-        new_person = Person(**person)
-        elevator.add_person(new_person)
-        response["Persons"].append(
-            {
-                "id": new_person.id,
-                "origin": new_person.location,
-                "destination": new_person.destination,
-                "weight": new_person.weight,
-                "cargo": new_person.cargo,
-            }
-        )
 
     return f"{response_message}\n{response}", 200
 
