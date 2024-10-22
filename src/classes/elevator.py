@@ -2,14 +2,13 @@
 elevator.py
 Samuel Koller
 Created: 17 October 2024
-Updated: 20 October 2024
+Updated: 21 October 2024
 
 Class for the Elevator object, which tracks the state an contents of the elevator.
 """
 
 import bisect
 import logging
-from enum import Enum
 
 from src.classes.person import Person
 from src.utils.constants import MAX_CAPACITY, MAX_WEIGHT, TOP_FLOOR
@@ -19,29 +18,21 @@ logger = logging.Logger("Elevator")
 
 class Elevator:
     """
-    The Elevator object: transports persons to their requested destination.
-
-    Attributes:
-        stop_queue (list[int]): A priority queue of floors to stop at, priority is determined by closest floor in
-            direction of travel.
-        status (str): The status of the elevator. Can be a string of select choices defined by the Status enum.
-        current_floor (int): The current floor the elevator is on.
-        direction_up (bool): The current direction of the elevator.
-        top_floor (int): The maximum floor of the elevator.
-
-    Functions:
-        state_machine(iterations=0): Runs the state machine for the given number of iterations, or forever.
-        update(): Determines and executes the next action.
-        move_to_next_floor(): Moves to the next floor in the queue.
-        update_stops(list[int]): Adds a floor to the queue.
-
-    Examples:
-        elevator = Elevator()
-        elevator.state_machine()
+    Transports Person objects to their requested destination.
     """
 
     def __init__(self) -> None:
-        """Initializes an Elevator class, sets initial state to Idle."""
+        """
+
+
+        Attributes:
+            stop_queue (list[int]): A priority queue of floors to stop at, priority is determined by closest floor in
+                direction of travel.
+            status (str): The status of the elevator. Can be a string of select choices defined by the Status enum.
+            current_floor (int): The current floor the elevator is on.
+            direction_up (bool): The current direction of the elevator.
+            top_floor (int): The maximum floor of the elevator.
+        """
         self.up_queue: list[int] = []
         self.down_queue: list[int] = []
         self.priority_queue = []
@@ -50,15 +41,15 @@ class Elevator:
         self.is_open = True
         self.persons = {"elevator": []}
 
-    def process_request(self, **kwargs):
+    def process_request(self, source, button):
         """
         Processes the given button request and determines what to do.
 
         Parameters:
-            **kwargs: A dictionary of the following structure: {"source": int | str, "button": int | str}
+            source (int | str)
+            button (int | str | list[int | str])
         """
         priority = False
-        button = kwargs.get("button", None)
         if isinstance(button, list):
             if "close" in button:
                 priority = True
@@ -66,7 +57,6 @@ class Elevator:
                 # Make sure a number is at the beginning, when taking first index.
                 button = sorted(button, key=lambda x: (isinstance(x, str), x))
                 button = button[0]
-        source = kwargs.get("source", None)
 
         if source == "elevator":
             if isinstance(button, int) and 0 < button < TOP_FLOOR:
@@ -79,48 +69,63 @@ class Elevator:
 
     def update(self) -> None:
         """Determines what the next action for the elevator is."""
-        if len(self.priority_queue + self.up_queue + self.down_queue) == 0:
+        if len(self.priority_queue) == len(self.up_queue) == len(self.down_queue) == 0:
             return
         if self.priority_queue:
-            if self.current_floor == self.priority_queue[0]:
-                self.priority_queue.pop(0)
-                self.open()
-            elif self.priority_queue[0] > self.current_floor:
-                self.move_up()
-            else:
-                self.move_down()
+            self.priority_update()
 
         elif self.direction_up:
-            if self.up_queue:
-                if self.current_floor == self.up_queue[0]:
-                    self.up_queue.pop(0)
-                    self.open()
-                elif self.up_queue[0] > self.current_floor:
-                    self.move_up()
-                else:
-                    self.move_down()
-            else:
-                if self.down_queue:
-                    if self.down_queue[0] < self.current_floor:
-                        self.move_down()
-                    else:
-                        self.move_up()
+            self.up_update()
 
         elif not self.direction_up:
+            self.down_update()
+
+    def priority_update(self) -> None:
+
+        if self.current_floor == self.priority_queue[0]:
+            self.priority_queue.pop(0)
+            self.open()
+        elif self.priority_queue[0] > self.current_floor:
+            self.move_up()
+        else:
+            self.move_down()
+
+    def up_update(self) -> None:
+        if self.up_queue:
+            if self.current_floor == self.up_queue[0]:
+                self.up_queue.pop(0)
+                self.open()
+            elif self.up_queue[0] > self.current_floor:
+                self.move_up()
+                # ? If the next item in the up_queue is below the current floor, start going down
+                # ? The down_queue will be read next
+            else:
+                self.move_down()
+        else:
             if self.down_queue:
-                if self.current_floor == self.down_queue[0]:
-                    self.down_queue.pop(0)
-                    self.open()
-                elif self.down_queue[0] < self.current_floor:
+                if self.down_queue[0] < self.current_floor:
                     self.move_down()
                 else:
                     self.move_up()
+
+    def down_update(self) -> None:
+        """This will only be called from outside the elevator"""
+        if self.down_queue:
+            if self.current_floor == self.down_queue[0]:
+                self.down_queue.pop(0)
+                self.open()
+            elif self.down_queue[0] < self.current_floor:
+                self.move_down()
+            # ? If the next item in the down_queue is aboce the current floor, start going up
+            # ? The up_queue will be read next
             else:
-                if self.up_queue:
-                    if self.up_queue[0] < self.current_floor:
-                        self.move_down()
-                    else:
-                        self.move_up()
+                self.move_up()
+        else:
+            if self.up_queue:
+                if self.up_queue[0] < self.current_floor:
+                    self.move_down()
+                else:
+                    self.move_up()
 
     def open(self) -> None:
         """
@@ -155,15 +160,18 @@ class Elevator:
             ):
                 if (
                     total_weight + entering_person.weight + entering_person.cargo
-                    < MAX_WEIGHT
+                    <= MAX_WEIGHT
                 ):
-                    self.persons["elevator"].append(entering_person)
                     self.persons[self.current_floor].pop(0)
+                    self.persons["elevator"].append(entering_person)
                     self.add_stop(entering_person.destination)
                     total_weight = sum(
                         person.weight + person.cargo
                         for person in self.persons["elevator"]
                     )
+                    print(total_weight)
+                else:
+                    break
             entering_person_index += 1
 
         # If no one is in the elevator but there are people waiting to get on, the elevator must be switching direction.
@@ -201,28 +209,31 @@ class Elevator:
 
     def add_stop(self, stop: int, priority=False) -> None:
         """
-        Processes given list of floors to stop at and queues them in a logical order.
+        Processes given a stop queued from inside the elevator and adds it to the currently used queue.
 
         Parameters:
-            stops (list[int]): A list of the floors to stop at.
+            stop (int): The floors to stop at.
+            priority (boolean): If the floor is a priority stop, defaults to false.
         """
-        if not 0 < stop <= TOP_FLOOR:
+        if not self.validate_stop(stop):
             return
-        if stop == self.current_floor:
-            self.open()
-            return
-        if priority:
-            if stop not in self.priority_queue:
-                self.priority_queue.append(stop)
-            return
-
-        if stop > self.current_floor:
+        if priority and stop not in self.priority_queue:
+            self.priority_queue.append(stop)
+        elif stop > self.current_floor:
             self.add_up_stop(stop)
         else:
             self.add_down_stop(stop)
 
+    def validate_stop(self, stop: int) -> bool:
+        if not 0 < stop <= TOP_FLOOR:
+            return False
+        if stop == self.current_floor:
+            self.open()
+            return False
+        return True
+
     def add_up_stop(self, stop: int) -> None:
-        if stop in self.up_queue:
+        if not self.validate_stop(stop) or stop in self.up_queue:
             return
         up_stops = self.up_queue
         up_stops.append(stop)
@@ -239,7 +250,7 @@ class Elevator:
         self.up_queue = on_way + on_return
 
     def add_down_stop(self, stop: int) -> None:
-        if stop in self.down_queue:
+        if not self.validate_stop(stop) or stop in self.down_queue:
             return
         down_stops = self.down_queue
         down_stops.append(stop)
@@ -262,15 +273,11 @@ class Elevator:
         Parameters:
             person (Person): The person to add to the elevator.
         """
-        if self.persons.get(person.location):
-            self.persons[person.location].append(person)
-        else:
-            self.persons[person.location] = [person]
+        self.persons.setdefault(person.location, []).append(person)
         # ? If the added person is on the floor of the current elevator and it is open, load immediately.
         if person.location == self.current_floor and self.is_open:
             self.open()
+        elif person.location < person.destination:
+            self.add_up_stop(person.location)
         else:
-            if person.location < person.destination:
-                self.add_up_stop(person.location)
-            else:
-                self.add_down_stop(person.location)
+            self.add_down_stop(person.location)

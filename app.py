@@ -13,13 +13,13 @@ Functions:
     step(): A route to add persons to the system.
 """
 
-__version__ = "0.3.5"
+__version__ = "0.4.0"
 
 
 import logging
 
 from dotenv import load_dotenv
-from flask import Flask, Response, request
+from flask import Flask, Response, jsonify, request
 
 from src.classes.elevator import Elevator
 from src.classes.person import Person
@@ -41,7 +41,7 @@ def health_check():
     Responses:
         - **200 OK**: "Elevator is Online"
     """
-    return Response("Elevator is Online", status=200)
+    return "Elevator is Online", 200
 
 
 @app.route("/step/<int:steps>", methods=["GET"])
@@ -73,7 +73,7 @@ def step(steps: int):
 
     logger.info(
         f"After {steps} step(s), the elevator is now at {elevator.current_floor} and "
-            f"has a status of {'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors: Priority: {elevator.priority_queue}, Up: {elevator.up_queue}, Down: {elevator.down_queue}."
+        f"has a status of {'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors: Priority: {elevator.priority_queue}, Up: {elevator.up_queue}, Down: {elevator.down_queue}."
     )
     return Response(f"Moved {steps} steps.", status=200)
 
@@ -108,28 +108,44 @@ def create_person():
         with optional keys of {"weight": float, "cargo": float}.
 
     Responses:
-        - **200 OK**:
-            "Created Person 0 with the following attributes: Origin: 1, Destination: 2, Weight: 150, Cargo: 25."
+        - **200 OK**: "Succesfully created requested persons."
+        - **400 ERROR**: "Submitted person(s) invalid, details show invalid persons."
     """
     new_request = request.get_json()
 
-    res_msg = ""
+    response = {"message": "", "details": []}
 
     # Validate inputs
     for person in new_request:
         if person.get("origin") == 13 or person.get("destination") == 13:
-            return Response("One of the submitted persons was invalid", status=400)
+            response["message"] = (
+                "Submitted person(s) invalid, details show invalid persons."
+            )
+            response["details"].append(
+                {
+                    "origin": person.get("origin"),
+                    "destination": person.get("destination"),
+                }
+            )
+
+    if response["details"]:
+        return jsonify(response), 400
+    response["message"] = "Succesfully created requested persons."
 
     for person in new_request:
         new_person = Person(**person)
         elevator.add_person(new_person)
-        res_msg += (
-            f"Created Person {new_person.id} with the following attributes: Origin: {new_person.location}, "
-            f"Destination: {new_person.destination}, Weight: {new_person.weight}, Cargo: {new_person.cargo}.\n"
+        response["details"].append(
+            {
+                "id": new_person.id,
+                "origin": new_person.location,
+                "destination": new_person.destination,
+                "weight": new_person.weight,
+                "cargo": new_person.cargo,
+            }
         )
 
-    logger.info(res_msg)
-    return Response(res_msg, status=200)
+    return jsonify(response), 200
 
 
 if __name__ == "__main__":

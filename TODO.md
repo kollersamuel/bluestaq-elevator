@@ -1,1 +1,2 @@
 - Error handling, replace existing errors with custom.
+- Minor bug: If person going down to 7 from 20 and 1 is prioritized, 7 stays in down queue, so after 1 elevator goes up to 8, then back down to 7.
