@@ -13,7 +13,7 @@ Functions:
     step(): A route to add persons to the system.
 """
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 
 import logging
@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 from flask import Flask, request
 
 from src.classes.elevator import Elevator
-from src.classes.person import Person
+from src.classes.person import InvalidFloor, Person
 
 load_dotenv()
 app = Flask(__name__)
@@ -154,33 +154,31 @@ def create_person():
 
     # Validate inputs
     for person in new_request:
-        if person.get("origin") == 13 or person.get("destination") == 13:
-            response_message = (
-                "Submitted person(s) invalid, details show invalid person(s)."
-            )
+        try:
+            new_person = Person(**person)
+            elevator.add_person(new_person)
             response["Persons"].append(
+                {
+                    "id": new_person.id,
+                    "origin": new_person.location,
+                    "destination": new_person.destination,
+                    "weight": new_person.weight,
+                    "cargo": new_person.cargo,
+                }
+            )
+        except InvalidFloor:
+            response["Persons"] = [
                 {
                     "origin": person.get("origin"),
                     "destination": person.get("destination"),
+                    "weight": person.get("weight", "No weight provided"),
+                    "cargo": person.get("weight", "No cargo provided"),
                 }
-            )
+            ]
+            response_message = "Submitted person invalid, details show invalid person."
+            return f"{response_message}\n{response}", 400
 
-    if response["Persons"]:
-        return f"{response_message}\n{response}", 400
     response_message = "Succesfully created requested person(s)."
-
-    for person in new_request:
-        new_person = Person(**person)
-        elevator.add_person(new_person)
-        response["Persons"].append(
-            {
-                "id": new_person.id,
-                "origin": new_person.location,
-                "destination": new_person.destination,
-                "weight": new_person.weight,
-                "cargo": new_person.cargo,
-            }
-        )
 
     return f"{response_message}\n{response}", 200
 

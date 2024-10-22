@@ -50,3 +50,6 @@
 
 ## 0.4.1 (22 October 2024)
 - Correct bug in which when an elevator was filled to capacity and persons were left at the current floor, the floor was removed from the queue.
+
+## 0.4.2 (22 October 2024)
+- Adds custom exceptions.

@@ -9,7 +9,8 @@ Class for the Person object, which tracks the location of the person and other a
 
 import numpy as np
 
-from src.utils.constants import MAX_WEIGHT
+from src.utils.constants import MAX_WEIGHT, TOP_FLOOR
+from src.utils.custom_exceptions import InvalidFloor
 
 from ..utils import id_generator
 
@@ -32,8 +33,15 @@ class Person:
             cargo (float): The weight of the person's cargo.
         """
         self.id: int = id_generator()
-        self.location = origin
-        self.destination = destination
+
+        if 1 <= origin <= TOP_FLOOR and origin != 13:
+            self.location = origin
+        else:
+            raise InvalidFloor()
+        if 1 <= destination <= TOP_FLOOR and destination != 13:
+            self.destination = destination
+        else:
+            raise InvalidFloor()
 
         # ? If no weight provided, normally distribute weight, constrain to between 20 (persons less than 20 pounds
         # ? considered cargo) and MAX_WEIGHT

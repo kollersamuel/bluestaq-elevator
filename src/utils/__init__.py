@@ -8,4 +8,5 @@ Contains utilities for the program, such as configurations.
 """
 
 from .constants import *
+from .custom_exceptions import *
 from .id_generator import *
