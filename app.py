@@ -102,7 +102,12 @@ def press_button():
 
     # Validate inputs
     for button in new_request:
-        if isinstance(button.get("button"), int) and button.get("button") == 13 or isinstance(button.get("button"), list) and  13 in button.get("button"):
+        if (
+            isinstance(button.get("button"), int)
+            and button.get("button") == 13
+            or isinstance(button.get("button"), list)
+            and 13 in button.get("button")
+        ):
             response_message = (
                 "Submitted button(s) invalid, details show invalid button(s)."
             )

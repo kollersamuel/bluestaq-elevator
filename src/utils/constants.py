@@ -2,7 +2,7 @@
 constants.py
 Samuel Koller
 Created: 18 October 2024
-Updated: 19 October 2024
+Updated: 21 October 2024
 
 Configurable constants to edit the default application.
 """

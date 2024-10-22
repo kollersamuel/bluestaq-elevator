@@ -18,7 +18,7 @@ First, run `pip install -r ./requirements.txt` (for production) and optionally `
 
 # Usage
 
-You may change values in the `constants.py` file to reconfigure how the application works.
+You may change values in the `src/utils/constants.py` file to reconfigure how the application works.
 
 The following endpoints have been implemented.
 
