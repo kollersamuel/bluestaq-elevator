@@ -47,3 +47,6 @@
 ## 0.4.0 (21 October 2024)
 - Redesign the elevator to have three queues, up, down, and priority.
 - Add detail to endpoint responses.
+
+## 0.4.1 (22 October 2024)
+- Correct bug in which when an elevator was filled to capacity and persons were left at the current floor, the floor was removed from the queue.
