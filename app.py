@@ -22,8 +22,8 @@ from dotenv import load_dotenv
 from flask import Flask, request
 
 from src.classes.elevator import Elevator
-from src.classes.person import InvalidFloor, Person
-from src.utils.custom_exceptions import InvalidButton
+from src.classes.person import Person
+from src.utils.custom_exceptions import InvalidButton, InvalidFloor
 
 load_dotenv()
 app = Flask(__name__)

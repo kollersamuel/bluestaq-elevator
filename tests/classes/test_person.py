@@ -2,7 +2,7 @@
 test_person.py
 Samuel Koller
 Created: 19 October 2024
-Updated: 19 October 2024
+Updated: 22 October 2024
 
 Test Suite for the Person class.
 """

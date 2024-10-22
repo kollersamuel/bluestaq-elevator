@@ -52,4 +52,4 @@
 - Correct bug in which when an elevator was filled to capacity and persons were left at the current floor, the floor was removed from the queue.
 
 ## 0.4.2 (22 October 2024)
-- Adds custom exceptions.
+- Adds custom exceptions for person creation and button pressing.

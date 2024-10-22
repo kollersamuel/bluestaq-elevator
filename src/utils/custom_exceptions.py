@@ -17,8 +17,10 @@ class InvalidFloor(AttributeError):
 
     def __init__(
         self,
-        message=f"The selected floor is not in range, 1 <= floor <= {TOP_FLOOR}"
-        f"{', excluding 13.'if TOP_FLOOR > 13 else '.'}",
+        message=(
+            f"The selected floor is not in range, 1 <= floor <= {TOP_FLOOR}"
+            f"{', excluding 13.'if TOP_FLOOR > 13 else '.'}"
+        ),
     ):
         super().__init__(message)
 
@@ -31,7 +33,9 @@ class InvalidButton(AttributeError):
 
     def __init__(
         self,
-        message="A string source must be 'elevator', a string button must be 'up' or 'down. Other key must be an "
-        "integer",
+        message=(
+            "A string source must be 'elevator', a string button must be 'up' or 'down. Other key must be an "
+            "integer"
+        ),
     ):
         super().__init__(message)

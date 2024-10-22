@@ -2,7 +2,7 @@
 person.py
 Samuel Koller
 Created: 19 October 2024
-Updated: 21 October 2024
+Updated: 22 October 2024
 
 Class for the Person object, which tracks the location of the person and other attributes.
 """
