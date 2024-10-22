@@ -86,9 +86,9 @@ class Elevator:
             self.priority_queue.pop(0)
             self.open()
         elif self.priority_queue[0] > self.current_floor:
-            self.move_up()
+            self.move(True)
         else:
-            self.move_down()
+            self.move(False)
 
     def up_update(self) -> None:
         if self.up_queue:
@@ -96,17 +96,17 @@ class Elevator:
                 self.up_queue.pop(0)
                 self.open()
             elif self.up_queue[0] > self.current_floor:
-                self.move_up()
+                self.move(True)
                 # ? If the next item in the up_queue is below the current floor, start going down
                 # ? The down_queue will be read next
             else:
-                self.move_down()
+                self.move(False)
         else:
             if self.down_queue:
                 if self.down_queue[0] < self.current_floor:
-                    self.move_down()
+                    self.move(False)
                 else:
-                    self.move_up()
+                    self.move(True)
 
     def down_update(self) -> None:
         """This will only be called from outside the elevator"""
@@ -115,17 +115,17 @@ class Elevator:
                 self.down_queue.pop(0)
                 self.open()
             elif self.down_queue[0] < self.current_floor:
-                self.move_down()
+                self.move(False)
             # ? If the next item in the down_queue is aboce the current floor, start going up
             # ? The up_queue will be read next
             else:
-                self.move_up()
+                self.move(True)
         else:
             if self.up_queue:
                 if self.up_queue[0] < self.current_floor:
-                    self.move_down()
+                    self.move(False)
                 else:
-                    self.move_up()
+                    self.move(True)
 
     def open(self) -> None:
         """
@@ -187,13 +187,19 @@ class Elevator:
                 stop for stop in self.down_queue if stop != self.current_floor
             ]
 
+    def move(self, up: bool) -> None:
+        if up:
+            self.move_up()
+        else:
+            self.move_down()
+        if self.current_floor == 13:
+            self.move(up)
+
     def move_up(self) -> None:
         """Moves the elevator in a determined direction."""
         self.is_open = False
         self.direction_up = True
         self.current_floor += 1
-        if self.current_floor == 13:
-            self.move_up()
         if self.current_floor == TOP_FLOOR:
             self.direction_up = False
 
@@ -202,8 +208,6 @@ class Elevator:
         self.is_open = False
         self.direction_up = False
         self.current_floor -= 1
-        if self.current_floor == 13:
-            self.move_down()
         if self.current_floor == 1:
             self.direction_up = True
 
