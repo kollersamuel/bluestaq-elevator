@@ -43,3 +43,7 @@
 
 ## 0.3.5 (20 October 2024)
 - Allow for priority stops.
+
+## 0.4.0 (21 October 2024)
+- Redesign the elevator to have three queues, up, down, and priority.
+- Add detail to endpoint responses.

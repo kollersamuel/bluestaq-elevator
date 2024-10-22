@@ -2,23 +2,23 @@
 
 [Bluestaq Elevator Problem](https://github.com/kollersamuel/bluestaq-elevator)
 
-Elevator program written as part of the interview process for Bluestaq, Colorado Springs. The goal of this application is to have a continuously running elevator system with randomly generated events. A user may use endpoints to manually add events.
+This is an elevator program written as part of the interview process for Bluestaq, Colorado Springs. The goal of this application is to have a finite elevator state machine with manually entered events.
 
-A major assumption of this program is that this is a finite state machine and the application is built for a single machine and user.
+A major assumption of this program is not for expansion as part of a larger system, but just as a stand alone component and built for a single machine and user.
 
 This program simulates some real attributes of most elevators, including there not being a thirteenth floor, and being able to make priority stops.
 
 # Setup
 
-This application was build using Python 3.11, for best results use this version.
+This application was built using Python 3.11, for best results use this version.
 
 Ensure you have postman or a terminal to send endpoints from.
 
-First, run `pip install -r ./requirements.txt` (for production) and `pip install -r ./requirements.dev.txt` (for development).
+First, run `pip install -r ./requirements.txt` (for production) and optionally `pip install -r ./requirements.dev.txt` (for development).
 
 # Usage
 
-You may change values in the `.env` file to reconfigure how the application works.
+You may change values in the `src/utils/constants.py` file to reconfigure how the application works.
 
 The following endpoints have been implemented.
 
@@ -31,8 +31,8 @@ Health Check for the Application
 ### Responses
 
 - **200 OK**
-  - Description: Application is running.
-  - Message: "Elevator is Online"
+  - Description: Success
+  - Message: Elevator is Online
 
 ## GET /steps/<steps>
 
@@ -46,8 +46,8 @@ Progress the elevator by given number of steps.
 ### Responses
 
 - **200 OK**
-  - Description: Steps taken.
-  - Message: "Moved 0 steps."
+  - Description: Success.
+  - Message: Moved 0 step(s).
 
 
 ## POST /press_button
@@ -57,13 +57,16 @@ Progress the elevator by given number of steps.
 Route to manually press a button(s).
 
 ### Request Body
-JSON list of buttons to press, each button must follow the format of {"source": int | str, "button": int | str}.
+JSON list of buttons to press, each button must follow the format of {"source": int | str, "button": int | str | [int, str]}.
 
 ### Responses
 
 - **200 OK**
-  - Description: Request successfully submitted.
-  - Message: "Pushed requested button(s)"
+  - Description: Success.
+  - Message: Succesfully pressed requested button(s).
+- **400 ERROR**
+  - Description: Failed.
+  - Submitted button(s) invalid, details show invalid button(s).
 
 ## POST /create_person
 
@@ -77,8 +80,11 @@ JSON list of persons to add, each person must follow the format of {"origin": in
 ### Responses
 
 - **200 OK**
-  - Description: Request successfully submitted.
-  - Message: "Created Person 0 with the following attributes: Origin: 1, Destination: 2, Weight: 150, Cargo: 25."
+  - Description: Success
+  - Message: Succesfully created requested person(s).
+- **400 ERROR**
+  - Description: Success
+  - Message: Submitted person(s) invalid, details show invalid person(s).
 
 # Contributing
 
