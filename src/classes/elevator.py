@@ -23,15 +23,19 @@ class Elevator:
 
     def __init__(self) -> None:
         """
-
+        The elevator object begins with open doors and empty queues, on the first floor, and in the upward direction.
 
         Attributes:
-            stop_queue (list[int]): A priority queue of floors to stop at, priority is determined by closest floor in
-                direction of travel.
-            status (str): The status of the elevator. Can be a string of select choices defined by the Status enum.
+            up_queue (list[int]): A priority queue of floors in the upward direction to stop at, priority is determined
+                by closest floor in direction of travel.
+            down_queue (list[int]): A priority queue of floors in the downward direction to stop at, priority is
+                determined by closest floor in direction of travel.
+            priority_queue (list[int]): A priority queue of floors in the the have been prioritized due to an
+                emergency, priority is determined by order of floors queued.
             current_floor (int): The current floor the elevator is on.
             direction_up (bool): The current direction of the elevator.
-            top_floor (int): The maximum floor of the elevator.
+            is_open (bool): The status of the doors.
+            persons (dict): A dictionary containing persons at each floor and in the elevator.
         """
         self.up_queue: list[int] = []
         self.down_queue: list[int] = []
@@ -81,7 +85,7 @@ class Elevator:
             self.down_update()
 
     def priority_update(self) -> None:
-
+        """Called when there is an item in the priority queue, determines action to take."""
         if self.current_floor == self.priority_queue[0]:
             self.priority_queue.pop(0)
             self.open()
@@ -91,6 +95,7 @@ class Elevator:
             self.move(False)
 
     def up_update(self) -> None:
+        """Called when the current direction of the elevator is up, determines action to take."""
         if self.up_queue:
             if self.current_floor == self.up_queue[0]:
                 self.up_queue.pop(0)
@@ -109,7 +114,7 @@ class Elevator:
                     self.move(True)
 
     def down_update(self) -> None:
-        """This will only be called from outside the elevator"""
+        """Called when the current direction of the elevator is down, determines action to take."""
         if self.down_queue:
             if self.current_floor == self.down_queue[0]:
                 self.down_queue.pop(0)
@@ -169,7 +174,6 @@ class Elevator:
                         person.weight + person.cargo
                         for person in self.persons["elevator"]
                     )
-                    print(total_weight)
                 else:
                     break
             entering_person_index += 1
@@ -188,15 +192,22 @@ class Elevator:
             ]
 
     def move(self, up: bool) -> None:
+        """
+        Moves the elevator.
+
+        Parameters:
+            up (bool): Move up if true, move down if false.
+        """
         if up:
             self.move_up()
         else:
             self.move_down()
+        # ? Skip the 13th floor by moving again.
         if self.current_floor == 13:
             self.move(up)
 
     def move_up(self) -> None:
-        """Moves the elevator in a determined direction."""
+        """Moves the elevator upwards."""
         self.is_open = False
         self.direction_up = True
         self.current_floor += 1
@@ -204,7 +215,7 @@ class Elevator:
             self.direction_up = False
 
     def move_down(self) -> None:
-        """Moves the elevator in a determined direction."""
+        """Moves the elevator downwards."""
         self.is_open = False
         self.direction_up = False
         self.current_floor -= 1
@@ -229,6 +240,13 @@ class Elevator:
             self.add_down_stop(stop)
 
     def validate_stop(self, stop: int) -> bool:
+        """
+        Validates the stop to ensure it is in the system or current floor, If it is the current floor, it reopens the
+        doors.
+
+        Parameters:
+            stop (int): The stop to validate.
+        """
         if not 0 < stop <= TOP_FLOOR:
             return False
         if stop == self.current_floor:
@@ -237,6 +255,12 @@ class Elevator:
         return True
 
     def add_up_stop(self, stop: int) -> None:
+        """
+        This will only be called from outside the elevator. Adds a stop to the downward queue if valid.
+
+        Parameters:
+            stop (int): The stop to be queued in the downward direction.
+        """
         if not self.validate_stop(stop) or stop in self.up_queue:
             return
         up_stops = self.up_queue
@@ -254,6 +278,12 @@ class Elevator:
         self.up_queue = on_way + on_return
 
     def add_down_stop(self, stop: int) -> None:
+        """
+        This will only be called from outside the elevator. Adds a stop to the upward queue if valid.
+
+        Parameters:
+            stop (int): The stop to be queued in the upward direction.
+        """
         if not self.validate_stop(stop) or stop in self.down_queue:
             return
         down_stops = self.down_queue

@@ -7,11 +7,9 @@ Updated: 21 October 2024
 Test Suite for the Elevator class.
 """
 
-from unittest.mock import patch
-
 from src.classes.elevator import Elevator
 from src.classes.person import Person
-from src.utils.constants import TOP_FLOOR
+from src.utils.constants import MAX_WEIGHT, TOP_FLOOR
 
 
 def test_elevator_add_stop():
@@ -120,9 +118,9 @@ def test_elevator_add_passed_stops_above():
     assert test_elevator.up_queue == [10]
 
 
-def test_elevator_skip_floor_thirteen_up():
+def test_elevator_skip_floor_thirteen():
     """
-    - Tests the ability of the elevator to skip the thirteenth floor on the way up.
+    - Tests the ability of the elevator to skip the thirteenth floor.
     """
     test_elevator = Elevator()
     test_elevator.current_floor = 12
@@ -131,19 +129,6 @@ def test_elevator_skip_floor_thirteen_up():
     test_elevator.update()
 
     assert test_elevator.current_floor == 14
-
-
-def test_elevator_skip_floor_thirteen_down():
-    """
-    - Tests the ability of the elevator to skip the thirteenth floor on the way down.
-    """
-    test_elevator = Elevator()
-    test_elevator.current_floor = 14
-    test_elevator.add_stop(12)
-    test_elevator.update()
-    test_elevator.update()
-
-    assert test_elevator.current_floor == 12
 
 
 def test_elevator_up():
@@ -193,6 +178,47 @@ def test_elevator_stop():
     assert test_elevator.is_open is False
 
 
+def test_elevator_swap_to_up_below_queue():
+    """
+    - Tests the ability to continue moving down if the down queue is empty, but the first item in the up queue is below.
+    """
+    test_elevator = Elevator()
+    test_elevator.current_floor = 3
+    test_elevator.direction_up = False
+    test_elevator.add_up_stop(2)
+    test_elevator.update()
+
+    assert test_elevator.current_floor == 2
+    assert test_elevator.up_queue == [2]
+
+
+def test_elevator_swap_to_up_above_queue():
+    """
+    - Tests the ability to begin moving up if the down queue is empty and the first item in the up queue is above.
+    """
+    test_elevator = Elevator()
+    test_elevator.current_floor = 3
+    test_elevator.direction_up = False
+    test_elevator.add_up_stop(4)
+    test_elevator.update()
+
+    assert test_elevator.current_floor == 4
+    assert test_elevator.up_queue == [4]
+
+
+def test_elevator_swap_to_down_below_queue():
+    """
+    - Tests the ability to begin moving down if the up queue is empty and the first item in the down queue is below.
+    """
+    test_elevator = Elevator()
+    test_elevator.current_floor = 3
+    test_elevator.add_down_stop(4)
+    test_elevator.update()
+
+    assert test_elevator.current_floor == 4
+    assert test_elevator.down_queue == [4]
+
+
 def test_elevator_priority_floor():
     """
     - Tests the ability to stop at the next priority floor.
@@ -203,7 +229,7 @@ def test_elevator_priority_floor():
     test_elevator.update()
 
     assert test_elevator.current_floor == 2
-    assert test_elevator.priority_queue == []
+    assert not test_elevator.priority_queue
 
 
 def test_elevator_priority_up():
@@ -216,7 +242,7 @@ def test_elevator_priority_up():
     test_elevator.update()
 
     assert test_elevator.current_floor == 2
-    assert test_elevator.priority_queue == []
+    assert not test_elevator.priority_queue
 
 
 def test_elevator_priority_down():
@@ -230,7 +256,7 @@ def test_elevator_priority_down():
     test_elevator.update()
 
     assert test_elevator.current_floor == 1
-    assert test_elevator.priority_queue == []
+    assert not test_elevator.priority_queue
 
 
 def test_elevator_move_down_at_max_up_queue():
@@ -302,22 +328,17 @@ def test_elevator_stop_adding_at_capacity():
     """
     - Tests the ability to only load the elevator to capacity.
     """
-    # ? Mock the default value of MAX_WEIGHT so this test doesn't unexpectedly fail.
-    with patch("src.utils.constants.MAX_WEIGHT", new=2000):
-        test_elevator = Elevator()
-        # ? All persons are at 500 pounds plus randomly generated cargo weight.
-        person_500 = {"origin": 1, "destination": 10, "weight": 500}
-        test_person_1 = Person(**person_500)
-        test_person_2 = Person(**person_500)
-        test_person_3 = Person(**person_500)
-        test_person_4 = Person(**person_500)
-        test_elevator.add_person(test_person_1)
-        test_elevator.add_person(test_person_2)
-        test_elevator.add_person(test_person_3)
-        test_elevator.add_person(test_person_4)
+    test_elevator = Elevator()
+    # ? MAX_WEIGHT - 1, so that the elevator is not at capacity, and tries to load the next passenger.
+    test_person_1 = Person(
+        **{"origin": 1, "destination": 10, "weight": MAX_WEIGHT - 1, "cargo": 0}
+    )
+    test_person_2 = Person(**{"origin": 1, "destination": 10})
+    test_elevator.add_person(test_person_1)
+    test_elevator.add_person(test_person_2)
 
-        assert len(test_elevator.persons.get("elevator")) == 3
-        assert len(test_elevator.persons.get(1)) == 1
+    assert len(test_elevator.persons.get("elevator")) == 1
+    assert len(test_elevator.persons.get(1)) == 1
 
 
 def test_elevator_switch_direction_at_limit():

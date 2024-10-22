@@ -19,7 +19,7 @@ __version__ = "0.4.0"
 import logging
 
 from dotenv import load_dotenv
-from flask import Flask, Response, jsonify, request
+from flask import Flask, request
 
 from src.classes.elevator import Elevator
 from src.classes.person import Person
@@ -53,29 +53,33 @@ def step(steps: int):
         steps (int): The number of steps to take.
 
     Responses:
-        - **200 OK**: "Moved 0 steps."
+        - **200 OK**: "Moved 0 step(s)."
     """
+    response = {}
+    person_locations = ""
+
     for _ in range(steps):
         elevator.update()
         logger.debug(
-            f"After this step, the elevator is now at {elevator.current_floor} and "
-            f"has a status of {'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors: Priority: {elevator.priority_queue}, Up: {elevator.up_queue}, Down: {elevator.down_queue}."
+            f"After this step, the elevator is at {elevator.current_floor} and has a status of "
+            f"{'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors:\nPriority: "
+            f"{elevator.priority_queue}\nUp: {elevator.up_queue}\nDown: {elevator.down_queue}\n{person_locations}"
         )
-        # pylint: disable=expression-not-assigned
-        [
-            logger.debug(
-                f"Currently, there are: {len(v)} persons in the location of {k}"
-            )
+        person_locations = [
+            {k: f"There are: {len(v)} persons here"}
             for k, v in elevator.persons.items()
             if v
         ]
-        # pylint: enable: expression-not-assigned
 
-    logger.info(
-        f"After {steps} step(s), the elevator is now at {elevator.current_floor} and "
-        f"has a status of {'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors: Priority: {elevator.priority_queue}, Up: {elevator.up_queue}, Down: {elevator.down_queue}."
-    )
-    return Response(f"Moved {steps} steps.", status=200)
+    response["details"] = {
+        "Elevator Floor": elevator.current_floor,
+        "Status": "Open" if elevator.is_open else "Moving",
+        "Priority Queue": elevator.priority_queue,
+        "Up Queue": elevator.up_queue,
+        "Down Queue": elevator.down_queue,
+        "Person Locations": person_locations,
+    }
+    return f"Moved {steps} step(s).\n{response}", 200
 
 
 @app.route("/press_button", methods=["POST"])
@@ -84,18 +88,45 @@ def press_button():
     Route to submit a request to the elevator system.
 
     Body:
-        JSON list of buttons to press, each button must follow the format of {"source": int | str, "button": int | str}.
+        JSON list of buttons to press, each button must follow the format of
+        {"source": int | str, "button": int | str | [int, str]}.
 
     Responses:
-        - **200 OK**: "Pushed requested button(s)"
+        - **200 OK**: "Succesfully pressed requested button(s)."
+        - **400 OK**: "Submitted button(s) invalid, details show invalid button(s)."
     """
     new_request = request.get_json()
 
-    # pylint: disable=expression-not-assigned
-    [elevator.process_request(**button) for button in new_request]
-    # pylint: enable=expression-not-assigned
+    response = {"Buttons": []}
+    response_message = ""
 
-    return Response("Pushed requested button(s).", status=200)
+    # Validate inputs
+    for button in new_request:
+        if isinstance(button.get("button"), int) and button.get("button") == 13 or isinstance(button.get("button"), list) and  13 in button.get("button"):
+            response_message = (
+                "Submitted button(s) invalid, details show invalid button(s)."
+            )
+            response["Buttons"].append(
+                {
+                    "source": button.get("source"),
+                    "button": button.get("button"),
+                }
+            )
+
+    if response["Buttons"]:
+        return f"{response_message}\n{response}", 400
+    response_message = "Succesfully pressed requested button(s)."
+
+    for button in new_request:
+        elevator.process_request(**button)
+        response["Buttons"].append(
+            {
+                "source": button.get("source"),
+                "button": button.get("button"),
+            }
+        )
+
+    return f"{response_message}\n{response}", 200
 
 
 @app.route("/create_person", methods=["POST"])
@@ -108,34 +139,35 @@ def create_person():
         with optional keys of {"weight": float, "cargo": float}.
 
     Responses:
-        - **200 OK**: "Succesfully created requested persons."
-        - **400 ERROR**: "Submitted person(s) invalid, details show invalid persons."
+        - **200 OK**: "Succesfully created requested person(s)."
+        - **400 ERROR**: "Submitted person(s) invalid, details show invalid person(s)."
     """
     new_request = request.get_json()
 
-    response = {"message": "", "details": []}
+    response = {"Persons": []}
+    response_message = ""
 
     # Validate inputs
     for person in new_request:
         if person.get("origin") == 13 or person.get("destination") == 13:
-            response["message"] = (
-                "Submitted person(s) invalid, details show invalid persons."
+            response_message = (
+                "Submitted person(s) invalid, details show invalid person(s)."
             )
-            response["details"].append(
+            response["Persons"].append(
                 {
                     "origin": person.get("origin"),
                     "destination": person.get("destination"),
                 }
             )
 
-    if response["details"]:
-        return jsonify(response), 400
-    response["message"] = "Succesfully created requested persons."
+    if response["Persons"]:
+        return f"{response_message}\n{response}", 400
+    response_message = "Succesfully created requested person(s)."
 
     for person in new_request:
         new_person = Person(**person)
         elevator.add_person(new_person)
-        response["details"].append(
+        response["Persons"].append(
             {
                 "id": new_person.id,
                 "origin": new_person.location,
@@ -145,7 +177,7 @@ def create_person():
             }
         )
 
-    return jsonify(response), 200
+    return f"{response_message}\n{response}", 200
 
 
 if __name__ == "__main__":

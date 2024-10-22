@@ -1,2 +1,3 @@
 - Error handling, replace existing errors with custom.
-- Minor bug: If person going down to 7 from 20 and 1 is prioritized, 7 stays in down queue, so after 1 elevator goes up to 8, then back down to 7.
+- Minor bug: If a person is going down to floor 7 from floor 10 and floor 1 is prioritized, floor 7 stays in down queue, so after reaching floor 1, the elevator goes up to floor 8, then back down to floor 7.
+    - To fix, if stop added to priority queue, clear other queues. Then when priority queue is empty, requeue everything.
