@@ -2,7 +2,7 @@
 test_elevator.py
 Samuel Koller
 Created: 17 October 2024
-Updated: 21 October 2024
+Updated: 22 October 2024
 
 Test Suite for the Elevator class.
 """
@@ -336,9 +336,11 @@ def test_elevator_stop_adding_at_capacity():
     test_person_2 = Person(**{"origin": 1, "destination": 10})
     test_elevator.add_person(test_person_1)
     test_elevator.add_person(test_person_2)
+    test_elevator.update()
 
     assert len(test_elevator.persons.get("elevator")) == 1
     assert len(test_elevator.persons.get(1)) == 1
+    assert test_elevator.up_queue == [10, 1]
 
 
 def test_elevator_switch_direction_at_limit():

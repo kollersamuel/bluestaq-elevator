@@ -2,7 +2,7 @@
 elevator.py
 Samuel Koller
 Created: 17 October 2024
-Updated: 21 October 2024
+Updated: 22 October 2024
 
 Class for the Elevator object, which tracks the state an contents of the elevator.
 """
@@ -202,6 +202,17 @@ class Elevator:
             self.move_up()
         else:
             self.move_down()
+
+        previous_floor: int = self.current_floor - (1 if up else -1)
+        # ? If people were unable to board, requeue the previous floor.
+        if self.persons.get(previous_floor, []):
+            # pylint: disable=expression-not-assigned
+            [
+                self.add_person_stop(person)
+                for person in self.persons.get(previous_floor, [])
+            ]
+            # pylint: enable=expression-not-assigned
+
         # ? Skip the 13th floor by moving again.
         if self.current_floor == 13:
             self.move(up)
@@ -311,7 +322,12 @@ class Elevator:
         # ? If the added person is on the floor of the current elevator and it is open, load immediately.
         if person.location == self.current_floor and self.is_open:
             self.open()
-        elif person.location < person.destination:
+        else:
+            self.add_person_stop(person)
+
+    def add_person_stop(self, person: Person) -> None:
+        """Adds the person's floor to the correct queue."""
+        if person.location < person.destination:
             self.add_up_stop(person.location)
         else:
             self.add_down_stop(person.location)
