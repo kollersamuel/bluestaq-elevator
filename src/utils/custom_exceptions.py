@@ -21,3 +21,17 @@ class InvalidFloor(AttributeError):
         f"{', excluding 13.'if TOP_FLOOR > 13 else '.'}",
     ):
         super().__init__(message)
+
+
+class InvalidButton(AttributeError):
+    """
+    Custom exception for requesting a button with a string input that is not 'elevator', 'up', or 'down'. Other key must
+    be an integer.
+    """
+
+    def __init__(
+        self,
+        message="A string source must be 'elevator', a string button must be 'up' or 'down. Other key must be an "
+        "integer",
+    ):
+        super().__init__(message)

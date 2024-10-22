@@ -66,7 +66,7 @@ JSON list of buttons to press, each button must follow the format of {"source": 
   - Message: Succesfully pressed requested button(s).
 - **400 ERROR**
   - Description: Failed.
-  - Submitted button(s) invalid, details show invalid button(s).
+  - Submitted button invalid, details show invalid button.
 
 ## POST /create_person
 
@@ -84,7 +84,7 @@ JSON list of persons to add, each person must follow the format of {"origin": in
   - Message: Succesfully created requested person(s).
 - **400 ERROR**
   - Description: Success
-  - Message: Submitted person(s) invalid, details show invalid person(s).
+  - Message: Submitted person invalid, details show invalid person.
 
 # Contributing
 
