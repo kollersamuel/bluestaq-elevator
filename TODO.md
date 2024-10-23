@@ -1,0 +1,8 @@
+- Bug: If a person is going down to floor 7 from floor 10 and floor 1 is prioritized, floor 7 stays in down queue, so after reaching floor 1, the elevator goes up to floor 8, then back down to floor 7.
+  - Fix: if a stop is added to priority queue, clear other queues. Then when the priority queue is emptied, requeue everything manually.
+- Improve algorithm efficiencies.
+- Create an endpoint to randomly generate a simulation, meaning a set number of steps and random persons being created during random steps.
+- Implement a sound for the current direction of the elevator at the end of the step endpoint. This would play a ding if the elevator is going up, two dings if the elevator is going down, and no sound if the elevator is open/idle.
+- Implement an Emergency Stop and Call button. The emergency stop would stop the elevator from moving until pressed again. The Call button would accept an argument and echo to the console and endpoint result.
+- Validate constants in constants.py using custom exceptions.
+- Add target_floor property to Elevator to make testing easier.
