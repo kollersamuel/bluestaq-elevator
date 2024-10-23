@@ -4,7 +4,7 @@ Samuel Koller
 Created: 22 October 2024
 Updated: 22 October 2024
 
-Custom Exceptions used throughout the application.
+Custom Exceptions used throughout the program.
 """
 
 from src.utils.constants import TOP_FLOOR

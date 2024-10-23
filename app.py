@@ -4,7 +4,7 @@ Samuel Koller
 Created: 15 October 2024
 Updated: 22 October 2024
 
-Main file for the Bluestaq Elevator Application. Houses the Flask server and relevant endpoints.
+Main file for the Bluestaq Elevator Problem. Houses the Flask server and relevant endpoints.
 
 Functions:
     health_check(): A route to check if the service is running.
@@ -13,7 +13,7 @@ Functions:
     step(): A route to add persons to the system.
 """
 
-__version__ = "0.4.2"
+__version__ = "1.0.0"
 
 
 import logging
@@ -37,7 +37,7 @@ logger = logging.getLogger("Elevator")
 @app.route("/health", methods=["GET"])
 def health_check():
     """
-    Health check route to ping for application status.
+    Health check route to ping for program status.
 
     Responses:
         - **200 OK**: "Elevator is Online"
@@ -56,23 +56,23 @@ def step(steps: int):
     Responses:
         - **200 OK**: "Moved 0 step(s)."
     """
-    response = {}
-    person_locations = ""
+    response_details: dict = {}
+    person_locations: str | list[str] = ""
 
     for _ in range(steps):
         elevator.update()
-        logger.debug(
-            f"After this step, the elevator is at {elevator.current_floor} and has a status of "
-            f"{'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors:\nPriority: "
-            f"{elevator.priority_queue}\nUp: {elevator.up_queue}\nDown: {elevator.down_queue}\n{person_locations}"
-        )
         person_locations = [
             {k: f"There are: {len(v)} persons here"}
             for k, v in elevator.persons.items()
             if v
         ]
+        logger.debug(
+            f"After this step, the elevator is at {elevator.current_floor} and has a status of "
+            f"{'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors:\nPriority: "
+            f"{elevator.priority_queue}\nUp: {elevator.up_queue}\nDown: {elevator.down_queue}\n{person_locations}"
+        )
 
-    response["details"] = {
+    response_details["details"] = {
         "Elevator Floor": elevator.current_floor,
         "Status": "Open" if elevator.is_open else "Moving",
         "Priority Queue": elevator.priority_queue,
@@ -80,7 +80,7 @@ def step(steps: int):
         "Down Queue": elevator.down_queue,
         "Person Locations": person_locations,
     }
-    return f"Moved {steps} step(s).\n{response}", 200
+    return f"Moved {steps} step(s).\n{response_details}", 200
 
 
 @app.route("/press_button", methods=["POST"])
@@ -98,26 +98,26 @@ def press_button():
     """
     new_request = request.get_json()
 
-    response = {"Buttons": []}
-    response_message = ""
+    response_details: dict = {"Buttons": []}
+    response_message: str = ""
 
     # Validate inputs
     for button in new_request:
         try:
             elevator.process_request(**button)
-            response["Buttons"].append(
+            response_details["Buttons"].append(
                 {"button": button.get("button"), "source": button.get("source")}
             )
         except InvalidButton as exc:
-            response["Buttons"] = [
+            response_details["Buttons"] = [
                 {"button": button.get("button"), "source": button.get("source")}
             ]
             response_message = "Submitted button invalid, details show invalid button."
-            return f"{response_message}\n{exc}\n{response}", 400
+            return f"{response_message}\n{exc}\n{response_details}", 400
 
     response_message = "Succesfully created requested person(s)."
 
-    return f"{response_message}\n{response}", 200
+    return f"{response_message}\n{response_details}", 200
 
 
 @app.route("/create_person", methods=["POST"])
@@ -135,15 +135,15 @@ def create_person():
     """
     new_request = request.get_json()
 
-    response = {"Persons": []}
-    response_message = ""
+    response_details: dict = {"Persons": []}
+    response_message: str = ""
 
     # Validate inputs
     for person in new_request:
         try:
             new_person = Person(**person)
             elevator.add_person(new_person)
-            response["Persons"].append(
+            response_details["Persons"].append(
                 {
                     "id": new_person.id,
                     "origin": new_person.location,
@@ -153,7 +153,7 @@ def create_person():
                 }
             )
         except InvalidFloor as exc:
-            response["Persons"] = [
+            response_details["Persons"] = [
                 {
                     "origin": person.get("origin"),
                     "destination": person.get("destination"),
@@ -162,12 +162,12 @@ def create_person():
                 }
             ]
             response_message = "Submitted person invalid, details show invalid person."
-            return f"{response_message}\n{exc}\n{response}", 400
+            return f"{response_message}\n{exc}\n{response_details}", 400
 
     response_message = "Succesfully created requested person(s)."
 
-    return f"{response_message}\n{response}", 200
+    return f"{response_message}\n{response_details}", 200
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=3148)
+    app.run(debug=False, port=3148)
