@@ -86,7 +86,7 @@ Route to manually press a button(s).
 
 JSON list of buttons to press, each button must follow the format of {"source": int | str, "button": int | str | [int, str]}.
 
-Examples: 
+Examples:
 
 - Request for the elevator to stop at floor 3 on the way up: [{"source": 3, "button": "up"}]
 - Request for the elevator to stop at floors 5 and 7 while inside: [{"source": "elevator", "button": 5}, {"source": "elevator", "button": 7}]
@@ -112,6 +112,7 @@ Route to create a person(s) with journeys.
 JSON list of persons to add, each person must follow the format of {"origin": int , "destination": int}, with optional keys of {"weight": float, "cargo": float}.
 
 Examples:
+
 - Two people with randomly generated weights and cargos requesting to move from floor 1 to 3: [{"origin": 1, "destination": 3}, {"origin": 1, "destination": 3}]
 - A person with a set weight and cargo requesting to move from floor 1 to 3: [{"origin": 1, "destination": 3, "weight": 180, "cargo": 50}]
 
@@ -139,12 +140,10 @@ Please update the `CHANGELOG.md` with any notable changes.
 
 # Author
 
-Samuel Koller:
-    - E-mail: `samuel.a.koller@gmail.com`
-    - LinkedIn: `https://www.linkedin.com/in/koller-samuel/`
-    - GitHub: `https://github.com/kollersamuel`
+Samuel Koller: - E-mail: `samuel.a.koller@gmail.com` - LinkedIn: `https://www.linkedin.com/in/koller-samuel/` - GitHub: `https://github.com/kollersamuel`
 
 ## Acknowledgements
+
 GitHub's template for pylint CI workflow and python project `.gitignore`.
 
 # Possible Future Work:
