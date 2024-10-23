@@ -61,16 +61,16 @@ def step(steps: int):
 
     for _ in range(steps):
         elevator.update()
-        logger.debug(
-            f"After this step, the elevator is at {elevator.current_floor} and has a status of "
-            f"{'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors:\nPriority: "
-            f"{elevator.priority_queue}\nUp: {elevator.up_queue}\nDown: {elevator.down_queue}\n{person_locations}"
-        )
         person_locations = [
             {k: f"There are: {len(v)} persons here"}
             for k, v in elevator.persons.items()
             if v
         ]
+        logger.debug(
+            f"After this step, the elevator is at {elevator.current_floor} and has a status of "
+            f"{'Open' if elevator.is_open else 'Moving'} and a queue of stops for these floors:\nPriority: "
+            f"{elevator.priority_queue}\nUp: {elevator.up_queue}\nDown: {elevator.down_queue}\n{person_locations}"
+        )
 
     response_details["details"] = {
         "Elevator Floor": elevator.current_floor,
