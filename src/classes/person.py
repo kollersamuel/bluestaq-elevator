@@ -21,7 +21,13 @@ class Person:
     Information regarding a person and their journey.
     """
 
-    def __init__(self, origin, destination, weight=0, cargo=None) -> None:
+    def __init__(
+        self,
+        origin: int,
+        destination: int,
+        weight: float = 0,
+        cargo: float | None = None,
+    ) -> None:
         """
         Sets initial location to origin, and generates an identifier.
 
@@ -35,24 +41,24 @@ class Person:
         self.id: int = id_generator()
 
         if 1 <= origin <= TOP_FLOOR and origin != 13:
-            self.location = origin
+            self.location: int = origin
         else:
             raise InvalidFloor()
         if 1 <= destination <= TOP_FLOOR and destination != 13:
-            self.destination = destination
+            self.destination: int = destination
         else:
             raise InvalidFloor()
 
         # ? If no weight provided, normally distribute weight, constrain to between 20 (persons less than 20 pounds
         # ? considered cargo) and MAX_WEIGHT
         if 20 <= weight <= MAX_WEIGHT:
-            self.weight = weight
+            self.weight: float = weight
         else:
             self.weight: float = max(
                 20, min(np.random.normal(loc=150, scale=100), MAX_WEIGHT)
             )
         # ? If no cargo provided, normally distribute cargo weight, constrain to between 0 and 100 (arbitrary maximum)
         if cargo is not None and 0 <= cargo <= 100:
-            self.cargo = cargo
+            self.cargo: float = cargo
         else:
             self.cargo: float = max(0, min(np.random.normal(loc=25, scale=5), 100))

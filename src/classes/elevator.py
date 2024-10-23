@@ -40,21 +40,21 @@ class Elevator:
         """
         self.up_queue: list[int] = []
         self.down_queue: list[int] = []
-        self.priority_queue = []
+        self.priority_queue: list[int] = []
         self.current_floor: int = 1
         self.direction_up: bool = True
-        self.is_open = True
-        self.persons = {"elevator": []}
+        self.is_open: bool = True
+        self.persons: dict = {"elevator": []}
 
-    def process_request(self, source, button):
+    def process_request(self, source, button) -> None:
         """
         Processes the given button request and determines what to do.
 
         Parameters:
-            source (int | str)
-            button (int | str | list[int | str])
+            source (int | str): The source of the button press.
+            button (int | str | list[int , str]): The button pressed.
         """
-        priority = False
+        priority: bool = False
 
         # Check for priority queuing
         if isinstance(button, list):
@@ -70,12 +70,19 @@ class Elevator:
                 ):
                     raise InvalidButton()
                 button = sorted(button, key=lambda x: (isinstance(x, str), x))
-                button = button[0]
+                button: int = button[0]
 
         self.process_button(source, button, priority)
 
-    def process_button(self, source, button, priority) -> None:
-        """Ensures button combination is valid"""
+    def process_button(self, source, button, priority: bool) -> None:
+        """
+        Ensures button combination is valid and takes the appropriate action.
+
+        Parameters:
+            source (int | str): The source of the button press.
+            button (int | str | list[int , str]): The button pressed.
+            priority (bool): If the button was prioritized.
+        """
         if isinstance(source, int):
             if source == 13 or not 1 <= source <= TOP_FLOOR:
                 raise InvalidButton()
@@ -174,17 +181,19 @@ class Elevator:
             if person.destination != self.current_floor
         ]
 
-        total_weight = sum(
+        total_weight: float = sum(
             person.weight + person.cargo for person in self.persons["elevator"]
         )
-        entering_person_index = 0
+        entering_person_index: int = 0
         while (
             total_weight < MAX_WEIGHT
             and self.persons.get(self.current_floor)
             and len(self.persons.get(self.current_floor)) > entering_person_index
             and len(self.persons["elevator"]) < MAX_CAPACITY
         ):
-            entering_person = self.persons[self.current_floor][entering_person_index]
+            entering_person: Person = self.persons[self.current_floor][
+                entering_person_index
+            ]
             if (
                 entering_person.destination > self.current_floor
                 and self.direction_up
@@ -232,7 +241,7 @@ class Elevator:
             self.move_down()
 
         previous_floor: int = self.current_floor - (1 if up else -1)
-        # ? If people were unable to board, requeue the previous floor.
+        # ? If people were unable to board on the previous floor, requeue the previous floor.
         if self.persons.get(previous_floor, []):
             # pylint: disable=expression-not-assigned
             [
@@ -285,6 +294,8 @@ class Elevator:
 
         Parameters:
             stop (int): The stop to validate.
+
+        Returns: True if the stop is a valid floor, otherwise False.
         """
         if not 0 < stop <= TOP_FLOOR:
             return False
@@ -302,7 +313,7 @@ class Elevator:
         """
         if not self.validate_stop(stop) or stop in self.up_queue:
             return
-        up_stops = self.up_queue
+        up_stops: list[int] = self.up_queue
         up_stops.append(stop)
         up_stops.sort()
         split_index: int = bisect.bisect_left(up_stops, self.current_floor)
@@ -325,21 +336,21 @@ class Elevator:
         """
         if not self.validate_stop(stop) or stop in self.down_queue:
             return
-        down_stops = self.down_queue
+        down_stops: list[int] = self.down_queue
         down_stops.append(stop)
         down_stops.sort()
         split_index: int = bisect.bisect_left(down_stops, self.current_floor)
 
         if self.direction_up:
             on_way: list[int] = down_stops[split_index:]
-            on_return: list[int] = list(reversed(down_stops[:split_index]))
+            on_return: list[int] = down_stops[:split_index][::-1]
         else:
-            on_way: list[int] = list(reversed(down_stops[:split_index]))
+            on_way: list[int] = down_stops[:split_index][::-1]
             on_return: list[int] = down_stops[split_index:]
 
         self.down_queue = on_way + on_return
 
-    def add_person(self, person: Person):
+    def add_person(self, person: Person) -> None:
         """
         Adds a person to the elevator and queues their location.
 
@@ -354,7 +365,12 @@ class Elevator:
             self.add_person_stop(person)
 
     def add_person_stop(self, person: Person) -> None:
-        """Adds the person's floor to the correct queue."""
+        """
+        Adds the person's floor to the correct queue.
+
+        Parameters:
+            person (Person): The person's stop to add.
+        """
         if person.location < person.destination:
             self.add_up_stop(person.location)
         else:
