@@ -5,3 +5,4 @@
 - Implement a sound for the current direction of the elevator at the end of the step endpoint. This would play a ding if the elevator is going up, two dings if the elevator is going down, and no sound if the elevator is open/idle.
 - Implement an Emergency Stop and Call button. The emergency stop would stop the elevator from moving until pressed again. The Call button would accept an argument and echo to the console and endpoint result.
 - Validate constants in constants.py using custom exceptions.
+- Add target_floor property to Elevator to make testing easier.
