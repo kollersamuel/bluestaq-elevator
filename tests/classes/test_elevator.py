@@ -2,7 +2,7 @@
 test_elevator.py
 Samuel Koller
 Created: 17 October 2024
-Updated: 22 October 2024
+Updated: 23 October 2024
 
 Test Suite for the Elevator class.
 """
@@ -143,6 +143,15 @@ def test_elevator_process_invalid_request_button_types():
         test_elevator.process_request(**{"source": "elevator", "button": "up"})
     with pytest.raises(InvalidButton):
         test_elevator.process_request(**{"source": 1, "button": 3})
+
+
+def test_elevator_process_invalid_request_list_source():
+    """
+    - Tests the ability to throw an exception if a request source is a list.
+    """
+    test_elevator = Elevator()
+    with pytest.raises(InvalidButton):
+        test_elevator.process_request(**{"source": [1, 2], "button": 1})
 
 
 def test_elevator_add_passed_stops_below():
@@ -430,3 +439,28 @@ def test_elevator_switch_direction_at_end_of_queue():
     assert test_elevator.direction_up is False
     assert len(test_elevator.persons["elevator"]) == 1
     assert len(test_elevator.persons[2]) == 0
+
+
+def test_elevator_requeues_after_priority():
+    """
+    - Tests the ability to requeue all persons in the simulation once an elevator has completed it's priority queue.
+    """
+    test_elevator = Elevator()
+    test_person_elevator = Person(**{"origin": 1, "destination": 3})
+    test_person_down = Person(**{"origin": 7, "destination": 3})
+    test_elevator.add_person(test_person_elevator)
+    test_elevator.add_person(test_person_down)
+    test_elevator.update()
+
+    assert test_elevator.down_queue == [7]  # test_person_elevator going downwards to 3
+    assert test_elevator.up_queue == [3]  # test_person_elevator going upwards to 3
+
+    # Emergency close which passes floor 3
+    test_elevator.process_request(**{"source": "elevator", "button": ["close", 4]})
+    for _ in range(3):
+        test_elevator.update()
+
+    assert test_elevator.current_floor == 4
+    assert not test_elevator.priority_queue
+    # test_person_elevator going downwards to 3
+    assert test_elevator.down_queue == [7, 3]

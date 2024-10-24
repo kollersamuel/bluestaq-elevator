@@ -2,7 +2,7 @@
 elevator.py
 Samuel Koller
 Created: 17 October 2024
-Updated: 22 October 2024
+Updated: 23 October 2024
 
 Class for the Elevator object, which tracks the state an contents of the elevator.
 """
@@ -74,6 +74,7 @@ class Elevator:
 
         self.process_button(source, button, priority)
 
+    # pylint: disable=too-many-branches
     def process_button(self, source, button, priority: bool) -> None:
         """
         Ensures button combination is valid and takes the appropriate action.
@@ -83,6 +84,8 @@ class Elevator:
             button (int | str | list[int , str]): The button pressed.
             priority (bool): If the button was prioritized.
         """
+        if isinstance(button, list) or isinstance(source, list):
+            raise InvalidButton()
         if isinstance(source, int):
             if source == 13 or not 1 <= source <= TOP_FLOOR:
                 raise InvalidButton()
@@ -106,6 +109,8 @@ class Elevator:
             else:
                 raise InvalidButton()
 
+    # pylint: enable=too-many-branches
+
     def update(self) -> None:
         """Determines what the next action for the elevator is."""
         if len(self.priority_queue) == len(self.up_queue) == len(self.down_queue) == 0:
@@ -121,6 +126,8 @@ class Elevator:
 
     def priority_update(self) -> None:
         """Called when there is an item in the priority queue, determines action to take."""
+        self.down_queue = []
+        self.up_queue = []
         if self.current_floor == self.priority_queue[0]:
             self.priority_queue.pop(0)
             self.open()
@@ -128,6 +135,8 @@ class Elevator:
             self.move(True)
         else:
             self.move(False)
+        if not self.priority_queue:
+            self.requeue_all()
 
     def up_update(self) -> None:
         """Called when the current direction of the elevator is up, determines action to take."""
@@ -375,3 +384,11 @@ class Elevator:
             self.add_up_stop(person.location)
         else:
             self.add_down_stop(person.location)
+
+    def requeue_all(self) -> None:
+        """Called after the elevator clears it's priority queue to requeue all persons in the simulation."""
+        for person in self.persons["elevator"]:
+            self.add_stop(person.destination)
+        for i in range(1, TOP_FLOOR + 1):
+            for person in self.persons.get(i, []):
+                self.add_person_stop(person)
