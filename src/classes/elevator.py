@@ -74,6 +74,7 @@ class Elevator:
 
         self.process_button(source, button, priority)
 
+    # pylint: disable=too-many-branches
     def process_button(self, source, button, priority: bool) -> None:
         """
         Ensures button combination is valid and takes the appropriate action.
@@ -107,6 +108,8 @@ class Elevator:
                 self.add_stop(button, priority)
             else:
                 raise InvalidButton()
+
+    # pylint: enable=too-many-branches
 
     def update(self) -> None:
         """Determines what the next action for the elevator is."""

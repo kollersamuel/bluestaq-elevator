@@ -461,6 +461,6 @@ def test_elevator_requeues_after_priority():
         test_elevator.update()
 
     assert test_elevator.current_floor == 4
-    assert test_elevator.priority_queue == []
+    assert not test_elevator.priority_queue
     # test_person_elevator going downwards to 3
     assert test_elevator.down_queue == [7, 3]
