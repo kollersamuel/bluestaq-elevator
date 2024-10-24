@@ -2,7 +2,7 @@
 app.py
 Samuel Koller
 Created: 15 October 2024
-Updated: 22 October 2024
+Updated: 23 October 2024
 
 Main file for the Bluestaq Elevator Problem. Houses the Flask server and relevant endpoints.
 
@@ -13,7 +13,7 @@ Functions:
     step(): A route to add persons to the system.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 import logging

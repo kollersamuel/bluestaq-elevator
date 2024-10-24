@@ -125,6 +125,12 @@ Examples:
   - Description: Success
   - Message: Submitted person invalid, details show invalid person.
 
+# Safety Features
+
+The elevator has multiple safety features built in. The first safety feature is capacity limits, there are limits to the weight and number of individuals the elevator may carry, which are defined in `constants.py`.
+
+Additionally, the elevator has the ability to make a priority stop in the case of an emergency, to do this the close and a floor number button are pressed at the same time. When this occurs, the standard queue is deleted until the priority stop(s) are made. Once the priority stop queue is empty, all persons in the elevator system requeue their requests.
+
 # Contributing
 
 When contributing please continue to use the consistency standards set in place. To do this, ensure you have installed the development requirements. If so, run these commands (or run `. precommit.sh`):

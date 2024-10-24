@@ -80,3 +80,8 @@
 ## 1.0.0 (22 October 2024)
 
 - Minimum viable product, with up-to-date documentation.
+
+## 1.0.1 (23 October 2024)
+
+- Correct bug in which floors could be queued in the wrong direction following a priority stop completion.
+- Extra validation for button presses.
